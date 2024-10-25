@@ -1,0 +1,6 @@
+build
+out
+CMakePresets.json
+.vscode
+perf.data
+perf.data.old

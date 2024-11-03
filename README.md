@@ -25,8 +25,8 @@ conan profile detect
 ### Клонирование репозитория
 
 ```
-git clone https://github.com/Feanor-19/CPPCache
-cd CPPCache
+git clone ***
+cd Triangles
 ```
 
 ### Подготовка зависимостей

@@ -46,7 +46,8 @@ public:
     Vector3D& operator+=(const Vector3D& rhs);
     bool operator==(const Vector3D& rhs) const;
 
-    Vector3D norm() const;
+    Vector3D norm_vec() const;
+    double len() const;
 };
 
 Vector3D operator+(const Vector3D& lhs, const Vector3D& rhs);
@@ -55,15 +56,19 @@ Vector3D cross_prod(const Vector3D& lhs, const Vector3D& rhs);
 class Plane final
 {
 private:
-    Vector3D n_vec_;
+    Vector3D n_vec_; // always normalized
     Point3D p_;
 public:
     class DegeneratedPlane {}; 
     
-    Plane(Vector3D n_vec, Point3D p) : n_vec_(n_vec.norm()), p_(p) {};
+    Plane(Vector3D n_vec, Point3D p) : n_vec_(n_vec.norm_vec()), p_(p) {};
     Plane(Point3D p1, Point3D p2, Point3D p3);
 
     bool operator==(const Plane &rhs) const;
+
+    Vector3D n_vec() const;
+
+    //double dist_to_point(Point3D q);
 };
 
 } // namespace Geom

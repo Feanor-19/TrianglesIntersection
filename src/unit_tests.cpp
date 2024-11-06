@@ -8,7 +8,7 @@ using namespace Geom;
 
 TEST(Point3D, CtorOk)
 {
-    double x = 1, y = 2, z = 3;
+    scalar_t x = 1, y = 2, z = 3;
     Point3D p{x, y, z};
 
     EXPECT_DOUBLE_EQ(x, p.x());
@@ -18,11 +18,11 @@ TEST(Point3D, CtorOk)
 
 TEST(Point3D, CtorNaN)
 {
-    EXPECT_ANY_THROW((Point3D{std::numeric_limits<double>::quiet_NaN(), 0, 0}));
+    EXPECT_ANY_THROW((Point3D{std::numeric_limits<scalar_t>::quiet_NaN(), 0, 0}));
     
-    EXPECT_ANY_THROW((Point3D{0, std::numeric_limits<double>::quiet_NaN(), 0}));
+    EXPECT_ANY_THROW((Point3D{0, std::numeric_limits<scalar_t>::quiet_NaN(), 0}));
     
-    EXPECT_ANY_THROW((Point3D{0, 0, std::numeric_limits<double>::quiet_NaN()}));
+    EXPECT_ANY_THROW((Point3D{0, 0, std::numeric_limits<scalar_t>::quiet_NaN()}));
 }
 
 TEST(Point3D, Equality)
@@ -35,7 +35,7 @@ TEST(Point3D, Equality)
 
 TEST(Vector3D, CtorOk)
 {
-    double x = 1, y = 2, z = 3;
+    scalar_t x = 1, y = 2, z = 3;
     Vector3D v1{x, y, z};
 
     EXPECT_DOUBLE_EQ(x, v1.x());
@@ -53,14 +53,14 @@ TEST(Vector3D, CtorOk)
 
 TEST(Vector3D, CtorNaN)
 {
-    EXPECT_ANY_THROW((Vector3D{std::numeric_limits<double>::quiet_NaN(), 0, 0}));
+    EXPECT_ANY_THROW((Vector3D{std::numeric_limits<scalar_t>::quiet_NaN(), 0, 0}));
     
-    EXPECT_ANY_THROW((Vector3D{0, std::numeric_limits<double>::quiet_NaN(), 0})); 
+    EXPECT_ANY_THROW((Vector3D{0, std::numeric_limits<scalar_t>::quiet_NaN(), 0})); 
     
-    EXPECT_ANY_THROW((Vector3D{0, 0, std::numeric_limits<double>::quiet_NaN()}));
+    EXPECT_ANY_THROW((Vector3D{0, 0, std::numeric_limits<scalar_t>::quiet_NaN()}));
 }
 
-TEST(Vector3D, Norm)
+TEST(Vector3D, NormVec)
 {
     Vector3D v0 = Vector3D{0, 0, 0}.norm_vec();
     EXPECT_TRUE(eq(v0.x(), 0));
@@ -91,10 +91,53 @@ TEST(Vector3D, Equality)
     EXPECT_TRUE(p == q);
 }
 
+TEST(Vector3D, BinPlus)
+{
+    Vector3D p{1, 2, 3};
+    Vector3D q{-1, -2, -3};
+    EXPECT_TRUE((p + q == Vector3D{0,0,0}));
+}
+
+TEST(Vector3D, Len)
+{
+    double a = 42;
+    Vector3D v1 = {a, 0, 0};
+    EXPECT_DOUBLE_EQ(v1.len(), a);
+
+    Vector3D v2 = {0, a, 0};
+    EXPECT_DOUBLE_EQ(v2.len(), a);
+
+    Vector3D v3 = {0, 0, a};
+    EXPECT_DOUBLE_EQ(v3.len(), a);
+}
+
 TEST(Vector3D, CrossProd)
 {
     Vector3D res = cross_prod(Vector3D{1, 0, 0}, Vector3D{0, 1, 0});
     EXPECT_TRUE((res == Vector3D{0, 0, 1}));
+}
+
+TEST(Vector3D, ScalarProd)
+{
+    Vector3D v1{1, 2, 3};
+    Vector3D v2 = -v1;
+    EXPECT_DOUBLE_EQ(scalar_prod(v1, v2), -1*v1.len()*v1.len());
+    EXPECT_DOUBLE_EQ(scalar_prod(v1, v1), v1.len() * v1.len());
+    
+    Vector3D v3{35.32, -235325.43, 435.345};
+    Vector3D v4{-345.3, 4353.4, 43458.879};
+    EXPECT_DOUBLE_EQ(scalar_prod(v3, v4), scalar_prod(v4, v3));
+    EXPECT_DOUBLE_EQ(scalar_prod(v3, v3), v3.len() * v3.len());
+    EXPECT_DOUBLE_EQ(scalar_prod(v4, v4), v4.len() * v4.len());
+}
+
+TEST(Vector3D, UnMinus)
+{
+    Vector3D v1{1, 2, 3};
+    Vector3D v2 = -v1;
+    EXPECT_DOUBLE_EQ(v1.x(), -v2.x());
+    EXPECT_DOUBLE_EQ(v1.y(), -v2.y());
+    EXPECT_DOUBLE_EQ(v1.z(), -v2.z());
 }
 
 TEST(Plane, CtorOk)
@@ -110,19 +153,28 @@ TEST(Plane, CtorDegenerate)
 
     try {Plane p{{0,0,0}, {0,0,0}, {1,1,1}};}
     catch(...) {SUCCEED();}
+}
 
-    FAIL();
+TEST(Plane, Equality)
+{
+    Plane a{{0,0,0}, {1,-1,0}, {-1,-1,2}};
+    Plane b{Vector3D{1,1,1}, Point3D{-1,1,0}};
+    EXPECT_TRUE(a==b);
+
+    Plane c{Vector3D{1,1,1}, Point3D{0,0,0}};
+    Plane d{Vector3D{-1,-1,-1}, Point3D{0,0,0}};
+    EXPECT_TRUE(c==d);
 }
 
 TEST(Plane, NormalVecHasUnitLen)
 {
     Plane p{Vector3D{1.23, -4.56, 7.89}, Point3D{0, 0, 0}};
-    EXPECT_TRUE(p.n_vec().len() == 1);
+    EXPECT_DOUBLE_EQ(p.n_vec().len(), 1);
 
     Plane q{Point3D{1234.435, 324.456, -45.245}, 
             Point3D{24.235, -45.535, 4353.45}, 
             Point3D{-252.435,233.43,454}
             };
-    EXPECT_TRUE(p.n_vec().len() == 1);
+    EXPECT_DOUBLE_EQ(q.n_vec().len(), 1);
 }
 

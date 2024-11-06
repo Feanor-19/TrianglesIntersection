@@ -5,15 +5,17 @@
 int main()
 {
     using namespace Geom;
-    Vector3D vec1{1, 2, 3};
-    Vector3D vec2{-1, -2, -3};
 
-    std::cout << "Vec1: " << vec1.x() << vec1.y() << vec1.z() << std::endl;
-    std::cout << "Vec2: " << vec2.x() << vec2.y() << vec2.z() << std::endl;
+    int i = 0;
 
-    Vector3D vec3 = vec1 + vec2;
+    Plane p{Vector3D{1.23, -4.56, 7.89}, Point3D{0, 0, 0}};
+    Plane q{Point3D{1234.435, 324.456, -45.245}, 
+            Point3D{24.235, -45.535, 4353.45}, 
+            Point3D{-252.435,233.43,454}
+            };
 
-    std::cout << "Vec3: " << vec3.x() << vec3.y() << vec3.z() << std::endl;
+    std::cout << p.n_vec().len() << std::endl;
+    std::cout << q.n_vec().len() << std::endl;
 
     return 0;
 }

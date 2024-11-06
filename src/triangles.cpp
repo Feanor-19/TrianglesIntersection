@@ -5,7 +5,7 @@
 namespace Geom
 {
 
-Point3D::Point3D(double x, double y, double z) :
+Point3D::Point3D(scalar_t x, scalar_t y, scalar_t z) :
     x_(x), y_(y), z_(z)
 {
     if (std::isnan(x) || std::isnan(y) || std::isnan(z))
@@ -17,7 +17,7 @@ bool Point3D::operator==(const Point3D &rhs) const
     return eq(x_, rhs.x_) && eq(y_, rhs.y_) && eq(z_, rhs.z_);
 }
 
-Vector3D::Vector3D(double x, double y, double z) : 
+Vector3D::Vector3D(scalar_t x, scalar_t y, scalar_t z) : 
     x_(x), y_(y), z_(z)
 {
     if (std::isnan(x) || std::isnan(y) || std::isnan(z))
@@ -42,17 +42,22 @@ bool Vector3D::operator==(const Vector3D &rhs) const
     return eq(x_, rhs.x_) && eq(y_, rhs.y_) && eq(z_, rhs.z_);
 }
 
+Vector3D Vector3D::operator-() const
+{
+    return Vector3D{-x_, -y_, -z_};
+}
+
 Vector3D Vector3D::norm_vec() const
 {
-    double len = sqrt(x_*x_ + y_*y_ + z_*z_);
+    scalar_t len = sqrt(x_*x_ + y_*y_ + z_*z_);
     if (iszero(len))
         return Vector3D{0, 0, 0};
     return Vector3D{x_/len, y_/len, z_/len};
 }
 
-double Vector3D::len() const
+scalar_t Vector3D::len() const
 {
-    return x_ * x_ + y_ * y_ + z_ * z_;
+    return sqrt(x_ * x_ + y_ * y_ + z_ * z_);
 }
 
 Vector3D operator+(const Vector3D &lhs, const Vector3D &rhs)
@@ -70,21 +75,31 @@ Vector3D cross_prod(const Vector3D &lhs, const Vector3D &rhs)
     };
 }
 
+scalar_t scalar_prod(const Vector3D &lhs, const Vector3D &rhs)
+{
+    return lhs.x()*rhs.x() + lhs.y()*rhs.y() + lhs.z()*rhs.z();
+}
+
 Plane::Plane(Point3D p1, Point3D p2, Point3D p3) :
     n_vec_(cross_prod(Vector3D{p1, p2}, Vector3D{p1, p3}).norm_vec()), p_(p1)
 {
-    if (n_vec_ == Vector3D{0, 0, 0})
+    if (n_vec_.len() == 0)
         throw DegeneratedPlane();
 }
 
 bool Plane::operator==(const Plane &rhs) const
 {
-    return n_vec_ == rhs.n_vec_ && p_ == rhs.p_;
+    return (n_vec_ == rhs.n_vec_ || n_vec_ == -rhs.n_vec_) && has_point(rhs.p_);
 }
 
 Vector3D Plane::n_vec() const
 {
     return n_vec_;
+}
+
+bool Plane::has_point(Point3D q) const
+{
+    return eq(scalar_prod(Vector3D{p_, q}, n_vec_), 0);
 }
 
 } // namespace Geom

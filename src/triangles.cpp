@@ -83,14 +83,14 @@ scalar_t scalar_prod(const Vector3D &lhs, const Vector3D &rhs)
 Plane::Plane(Vector3D n_vec, Point3D p)
     : n_vec_(n_vec.norm_vec()), p_(p)
 {
-    if (n_vec_.len() == 0)
+    if (eq(n_vec_.len(), 0))
         throw DegeneratedPlane();    
 }
 
 Plane::Plane(Point3D p1, Point3D p2, Point3D p3) 
     : n_vec_(cross_prod(Vector3D{p1, p2}, Vector3D{p1, p3}).norm_vec()), p_(p1)
 {
-    if (n_vec_.len() == 0)
+    if (eq(n_vec_.len(), 0))
         throw DegeneratedPlane();
 }
 
@@ -117,6 +117,30 @@ bool Plane::has_point(Point3D q) const
 scalar_t Plane::signed_dist_to_point(Point3D q) const
 {
    return scalar_prod(n_vec_, Vector3D{p_, q});
+}
+
+Line3D::Line3D(Vector3D dir, Point3D p)
+    : dir_(dir.norm_vec()), p_(p)
+{
+    if (eq(dir_.len(), 0))
+        throw DegeneratedLine();
+}
+
+Line3D::Line3D(Point3D p1, Point3D p2)
+    : dir_(p1, p2), p_(p1)
+{
+    if (eq(dir_.len(), 0))
+        throw DegeneratedLine();
+}
+
+Vector3D Line3D::dir() const
+{
+    return dir_;
+}
+
+Point3D Line3D::p() const
+{
+    return p_;
 }
 
 } // namespace Geom

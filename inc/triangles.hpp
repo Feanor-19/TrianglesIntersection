@@ -12,7 +12,7 @@ const scalar_t DBL_PRECISION = 1e-10;
 
 inline bool eq(scalar_t a, scalar_t b)
 {
-    return abs(a - b) < DBL_PRECISION;
+    return fabs(a - b) < DBL_PRECISION;
 }
 
 // if one of parameters of the constructor is NaN
@@ -56,6 +56,21 @@ public:
 Vector3D operator+(const Vector3D& lhs, const Vector3D& rhs);
 Vector3D cross_prod(const Vector3D& lhs, const Vector3D& rhs);
 scalar_t scalar_prod(const Vector3D& lhs, const Vector3D& rhs);
+
+class Line3D final
+{
+private:
+    Vector3D dir_; // always normalized
+    Point3D p_;
+public:
+    class DegeneratedLine {};
+
+    Line3D(Vector3D dir, Point3D p);
+    Line3D(Point3D p1, Point3D p2);
+
+    Vector3D dir() const;
+    Point3D p() const;
+};
 
 class Plane final
 {

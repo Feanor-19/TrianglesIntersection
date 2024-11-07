@@ -152,7 +152,12 @@ TEST(Plane, CtorDegenerate)
     //EXPECT_ANY_THROW((Plane p{{0,0,0}, {0,0,0}, {1,1,1}}));
 
     try {Plane p{{0,0,0}, {0,0,0}, {1,1,1}};}
-    catch(...) {SUCCEED();}
+    catch(...) {;}
+
+    try {Plane p{Vector3D{0,0,0}, {0,0,0}};}
+    catch(...) {;}
+
+    SUCCEED();
 }
 
 TEST(Plane, Equality)
@@ -186,5 +191,24 @@ TEST(Plane, SignedDistToPoint)
     EXPECT_DOUBLE_EQ(plane.signed_dist_to_point(point), 0);
     EXPECT_GT(plane.signed_dist_to_point({2,3,4}), 0);
     EXPECT_LT(plane.signed_dist_to_point({0,1,2}), 0);
+}
+
+TEST(Plane, IsParallelTo)
+{
+    Vector3D v1{1,2,3};
+    Vector3D v2{-10,-20,-30};
+    Vector3D v3{1,-2,3};
+
+    Plane p1{v1, {34,45,-67}};
+    Plane p2{v2, {-345,345,234}};
+    Plane p3{v3, {0,0,0}};
+
+    EXPECT_TRUE(p1.is_parallel_to(p2));
+    EXPECT_TRUE(p2.is_parallel_to(p1));
+
+    EXPECT_FALSE(p1.is_parallel_to(p3));
+    EXPECT_FALSE(p2.is_parallel_to(p3));
+    EXPECT_FALSE(p3.is_parallel_to(p1));
+    EXPECT_FALSE(p3.is_parallel_to(p2));
 }
 

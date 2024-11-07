@@ -65,16 +65,17 @@ private:
 public:
     class DegeneratedPlane {}; 
     
-    Plane(Vector3D n_vec, Point3D p) : n_vec_(n_vec.norm_vec()), p_(p) {};
+    Plane(Vector3D n_vec, Point3D p);
     Plane(Point3D p1, Point3D p2, Point3D p3);
 
     bool operator==(const Plane &rhs) const;
+    bool is_parallel_to(const Plane &rhs) const;
 
     Vector3D n_vec() const;
 
     bool has_point(Point3D q) const;
 
-    scalar_t signed_dist_to_point(Point3D q);
+    scalar_t signed_dist_to_point(Point3D q) const;
 };
 
 } // namespace Geom

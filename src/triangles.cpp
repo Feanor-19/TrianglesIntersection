@@ -80,8 +80,15 @@ scalar_t scalar_prod(const Vector3D &lhs, const Vector3D &rhs)
     return lhs.x()*rhs.x() + lhs.y()*rhs.y() + lhs.z()*rhs.z();
 }
 
-Plane::Plane(Point3D p1, Point3D p2, Point3D p3) :
-    n_vec_(cross_prod(Vector3D{p1, p2}, Vector3D{p1, p3}).norm_vec()), p_(p1)
+Plane::Plane(Vector3D n_vec, Point3D p)
+    : n_vec_(n_vec.norm_vec()), p_(p)
+{
+    if (n_vec_.len() == 0)
+        throw DegeneratedPlane();    
+}
+
+Plane::Plane(Point3D p1, Point3D p2, Point3D p3) 
+    : n_vec_(cross_prod(Vector3D{p1, p2}, Vector3D{p1, p3}).norm_vec()), p_(p1)
 {
     if (n_vec_.len() == 0)
         throw DegeneratedPlane();
@@ -90,6 +97,11 @@ Plane::Plane(Point3D p1, Point3D p2, Point3D p3) :
 bool Plane::operator==(const Plane &rhs) const
 {
     return (n_vec_ == rhs.n_vec_ || n_vec_ == -rhs.n_vec_) && has_point(rhs.p_);
+}
+
+bool Plane::is_parallel_to(const Plane &rhs) const
+{
+    return (n_vec_ == rhs.n_vec_ || n_vec_ == -rhs.n_vec_);
 }
 
 Vector3D Plane::n_vec() const
@@ -102,7 +114,7 @@ bool Plane::has_point(Point3D q) const
     return eq(scalar_prod(Vector3D{p_, q}, n_vec_), 0);
 }
 
-scalar_t Plane::signed_dist_to_point(Point3D q)
+scalar_t Plane::signed_dist_to_point(Point3D q) const
 {
    return scalar_prod(n_vec_, Vector3D{p_, q});
 }

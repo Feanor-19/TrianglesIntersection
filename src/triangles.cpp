@@ -102,4 +102,9 @@ bool Plane::has_point(Point3D q) const
     return eq(scalar_prod(Vector3D{p_, q}, n_vec_), 0);
 }
 
+scalar_t Plane::signed_dist_to_point(Point3D q)
+{
+   return scalar_prod(n_vec_, Vector3D{p_, q});
+}
+
 } // namespace Geom

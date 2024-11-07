@@ -74,7 +74,7 @@ public:
 
     bool has_point(Point3D q) const;
 
-    //scalar_t dist_to_point(Point3D q);
+    scalar_t signed_dist_to_point(Point3D q);
 };
 
 } // namespace Geom

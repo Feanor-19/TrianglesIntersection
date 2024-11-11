@@ -2,6 +2,7 @@
 
 #include <numeric>
 #include <cmath>
+#include <stdexcept>
 
 namespace Geom
 {
@@ -10,13 +11,23 @@ using scalar_t = double;
 
 const scalar_t DBL_PRECISION = 1e-10;
 
+class GeomException : std::logic_error 
+{
+public:
+    GeomException(const char *err_msg) : std::logic_error(err_msg) {}
+};
+
 inline bool eq(scalar_t a, scalar_t b)
 {
     return fabs(a - b) < DBL_PRECISION;
 }
 
 // if one of parameters of the constructor is NaN
-class ExceptionNaNCtorParam {};
+class NaNCtorParam : GeomException 
+{
+public:
+    NaNCtorParam() : GeomException("At least one of parametres passed to constructor is a NaN") {}
+};
 
 class Point3D final
 {
@@ -63,7 +74,11 @@ private:
     Vector3D dir_; // always normalized
     Point3D p_;
 public:
-    class DegeneratedLine {};
+    class DegeneratedLine : public GeomException 
+    {
+    public:
+        DegeneratedLine() : GeomException("Attempt to construct a degenerated line") {}
+    };
 
     Line3D(Vector3D dir, Point3D p);
     Line3D(Point3D p1, Point3D p2);
@@ -78,7 +93,11 @@ private:
     Vector3D n_vec_; // always normalized
     Point3D p_;
 public:
-    class DegeneratedPlane {}; 
+    class DegeneratedPlane : GeomException
+        {
+    public:
+        DegeneratedPlane() : GeomException("Attempt to construct a degenerated plane") {}
+    }; 
     
     Plane(Vector3D n_vec, Point3D p);
     Plane(Point3D p1, Point3D p2, Point3D p3);

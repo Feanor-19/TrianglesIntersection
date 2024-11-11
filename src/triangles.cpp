@@ -9,7 +9,7 @@ Point3D::Point3D(scalar_t x, scalar_t y, scalar_t z) :
     x_(x), y_(y), z_(z)
 {
     if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-        throw ExceptionNaNCtorParam();
+        throw NaNCtorParam();
 }
 
 bool Point3D::operator==(const Point3D &rhs) const
@@ -21,7 +21,7 @@ Vector3D::Vector3D(scalar_t x, scalar_t y, scalar_t z) :
     x_(x), y_(y), z_(z)
 {
     if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-        throw ExceptionNaNCtorParam();
+        throw NaNCtorParam();
 }
 
 Vector3D::Vector3D(Point3D p_start, Point3D p_end) : 

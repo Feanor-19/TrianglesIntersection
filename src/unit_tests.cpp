@@ -18,11 +18,11 @@ TEST(Point3D, CtorOk)
 
 TEST(Point3D, CtorNaN)
 {
-    EXPECT_ANY_THROW((Point3D{std::numeric_limits<scalar_t>::quiet_NaN(), 0, 0}));
+    EXPECT_THROW((Point3D{std::numeric_limits<scalar_t>::quiet_NaN(), 0, 0}), NaNCtorParam);
     
-    EXPECT_ANY_THROW((Point3D{0, std::numeric_limits<scalar_t>::quiet_NaN(), 0}));
+    EXPECT_THROW((Point3D{0, std::numeric_limits<scalar_t>::quiet_NaN(), 0}), NaNCtorParam);
     
-    EXPECT_ANY_THROW((Point3D{0, 0, std::numeric_limits<scalar_t>::quiet_NaN()}));
+    EXPECT_THROW((Point3D{0, 0, std::numeric_limits<scalar_t>::quiet_NaN()}), NaNCtorParam);
 }
 
 TEST(Point3D, Equality)
@@ -53,11 +53,11 @@ TEST(Vector3D, CtorOk)
 
 TEST(Vector3D, CtorNaN)
 {
-    EXPECT_ANY_THROW((Vector3D{std::numeric_limits<scalar_t>::quiet_NaN(), 0, 0}));
+    EXPECT_THROW((Vector3D{std::numeric_limits<scalar_t>::quiet_NaN(), 0, 0}), NaNCtorParam);
     
-    EXPECT_ANY_THROW((Vector3D{0, std::numeric_limits<scalar_t>::quiet_NaN(), 0})); 
+    EXPECT_THROW((Vector3D{0, std::numeric_limits<scalar_t>::quiet_NaN(), 0}), NaNCtorParam); 
     
-    EXPECT_ANY_THROW((Vector3D{0, 0, std::numeric_limits<scalar_t>::quiet_NaN()}));
+    EXPECT_THROW((Vector3D{0, 0, std::numeric_limits<scalar_t>::quiet_NaN()}), NaNCtorParam);
 }
 
 TEST(Vector3D, NormVec)
@@ -148,8 +148,8 @@ TEST(Line3D, CtorOk)
 
 TEST(Line3D, CtorDegenerate)
 {
-    EXPECT_ANY_THROW((Line3D{Vector3D{0,0,0}, {0,0,0}}));
-    EXPECT_ANY_THROW((Line3D{Point3D{1,1,1}, Point3D{1,1,1}}));
+    EXPECT_THROW((Line3D{Vector3D{0,0,0}, {0,0,0}}), Line3D::DegeneratedLine);
+    EXPECT_THROW((Line3D{Point3D{1,1,1}, Point3D{1,1,1}}), Line3D::DegeneratedLine);
 }
 
 TEST(Plane, CtorOk)
@@ -160,9 +160,9 @@ TEST(Plane, CtorOk)
 
 TEST(Plane, CtorDegenerate)
 {
-    EXPECT_ANY_THROW((Plane{{0,0,0}, {0,0,0}, {1,1,1}}));
+    EXPECT_THROW((Plane{{0,0,0}, {0,0,0}, {1,1,1}}), Plane::DegeneratedPlane);
 
-    EXPECT_ANY_THROW((Plane{Vector3D{0,0,0}, {0,0,0}}));
+    EXPECT_THROW((Plane{Vector3D{0,0,0}, {0,0,0}}), Plane::DegeneratedPlane);
 }
 
 TEST(Plane, Equality)
@@ -205,14 +205,14 @@ TEST(Plane, IsParallelTo)
     Vector3D v3{1,-2,3};
 
     Plane p1{v1, Point3D{34,45,-67}};
-    Plane p2{v2, Point3D{-345,345,234}}; // !!!
-    //Plane p3{v3, Point3D{0,0,0}};
+    Plane p2{v2, Point3D{-345,345,234}}; 
+    Plane p3{v3, Point3D{0,0,0}};
 
-    // EXPECT_TRUE(p1.is_parallel_to(p2));
-    // EXPECT_TRUE(p2.is_parallel_to(p1));
+    EXPECT_TRUE(p1.is_parallel_to(p2));
+    EXPECT_TRUE(p2.is_parallel_to(p1));
 
-    // EXPECT_FALSE(p1.is_parallel_to(p3));
-    // EXPECT_FALSE(p2.is_parallel_to(p3));
-    // EXPECT_FALSE(p3.is_parallel_to(p1));
-    // EXPECT_FALSE(p3.is_parallel_to(p2));
+    EXPECT_FALSE(p1.is_parallel_to(p3));
+    EXPECT_FALSE(p2.is_parallel_to(p3));
+    EXPECT_FALSE(p3.is_parallel_to(p1));
+    EXPECT_FALSE(p3.is_parallel_to(p2));
 }

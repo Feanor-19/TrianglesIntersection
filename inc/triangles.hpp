@@ -3,6 +3,7 @@
 #include <numeric>
 #include <cmath>
 #include <stdexcept>
+#include <optional>
 
 namespace Geom
 {
@@ -51,22 +52,27 @@ private:
 public:
     Vector3D(scalar_t x, scalar_t y, scalar_t z);
     Vector3D(Point3D p_start, Point3D p_end);
+    Vector3D(Point3D p) : x_(p.x()), y_(p.y()), z_(p.z()) {};
 
     scalar_t x() const {return x_;};
     scalar_t y() const {return y_;};
     scalar_t z() const {return z_;};
 
     Vector3D& operator+=(const Vector3D& rhs);
+    Vector3D& operator*=(scalar_t rhs);
     bool operator==(const Vector3D& rhs) const;
     Vector3D operator-() const;
+    operator Point3D() const;
 
     Vector3D norm_vec() const;
     scalar_t len() const;
 };
 
 Vector3D operator+(const Vector3D& lhs, const Vector3D& rhs);
+Vector3D operator*(scalar_t scalar, const Vector3D& vector);
+Vector3D operator*(const Vector3D& vector, scalar_t scalar);
 Vector3D cross_prod(const Vector3D& lhs, const Vector3D& rhs);
-scalar_t scalar_prod(const Vector3D& lhs, const Vector3D& rhs);
+scalar_t dot_prod(const Vector3D& lhs, const Vector3D& rhs);
 
 class Line3D final
 {
@@ -83,8 +89,13 @@ public:
     Line3D(Vector3D dir, Point3D p);
     Line3D(Point3D p1, Point3D p2);
 
+    bool operator==(const Line3D &rhs) const;
+    bool is_parallel_to(const Line3D &rhs) const;
+
     Vector3D dir() const;
     Point3D p() const;
+
+    bool has_point(Point3D q) const;
 };
 
 class Plane final
@@ -106,10 +117,13 @@ public:
     bool is_parallel_to(const Plane &rhs) const;
 
     Vector3D n_vec() const;
+    Point3D p() const;
 
     bool has_point(Point3D q) const;
 
     scalar_t signed_dist_to_point(Point3D q) const;
 };
+
+std::optional<Line3D> intersect_planes(Plane p1, Plane p2);
 
 } // namespace Geom

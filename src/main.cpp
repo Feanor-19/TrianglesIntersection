@@ -8,8 +8,8 @@ int main()
 
     int i = 0;
 
-    Vector3D v2{-10,-20,-30};
-    Plane p2{v2, Point3D{-345,345,234}};
+    std::cout << std::boolalpha;
+    std::cout << (Line3D{Vector3D{2,2,2}, {1,0,0}} == Line3D{Point3D{1,0,0}, {3,2,2}}) << std::endl;
 
     return 0;
 }

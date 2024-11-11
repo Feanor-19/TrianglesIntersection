@@ -98,6 +98,15 @@ TEST(Vector3D, BinPlus)
     EXPECT_TRUE((p + q == Vector3D{0,0,0}));
 }
 
+TEST(Vector3D, MulScalar)
+{
+    EXPECT_TRUE((Vector3D{1, 2, 3}*42 == 42*Vector3D{1,2,3}));
+
+    EXPECT_DOUBLE_EQ((Vector3D{1,2,3}*0).len(), 0);
+
+    EXPECT_TRUE((3 * Vector3D{1,2,3} == Vector3D{3,6,9}));
+}
+
 TEST(Vector3D, Len)
 {
     double a = 42;
@@ -121,14 +130,14 @@ TEST(Vector3D, ScalarProd)
 {
     Vector3D v1{1, 2, 3};
     Vector3D v2 = -v1;
-    EXPECT_DOUBLE_EQ(scalar_prod(v1, v2), -1*v1.len()*v1.len());
-    EXPECT_DOUBLE_EQ(scalar_prod(v1, v1), v1.len() * v1.len());
+    EXPECT_DOUBLE_EQ(dot_prod(v1, v2), -1*v1.len()*v1.len());
+    EXPECT_DOUBLE_EQ(dot_prod(v1, v1), v1.len() * v1.len());
     
     Vector3D v3{35.32, -235325.43, 435.345};
     Vector3D v4{-345.3, 4353.4, 43458.879};
-    EXPECT_DOUBLE_EQ(scalar_prod(v3, v4), scalar_prod(v4, v3));
-    EXPECT_DOUBLE_EQ(scalar_prod(v3, v3), v3.len() * v3.len());
-    EXPECT_DOUBLE_EQ(scalar_prod(v4, v4), v4.len() * v4.len());
+    EXPECT_DOUBLE_EQ(dot_prod(v3, v4), dot_prod(v4, v3));
+    EXPECT_DOUBLE_EQ(dot_prod(v3, v3), v3.len() * v3.len());
+    EXPECT_DOUBLE_EQ(dot_prod(v4, v4), v4.len() * v4.len());
 }
 
 TEST(Vector3D, UnMinus)
@@ -143,13 +152,58 @@ TEST(Vector3D, UnMinus)
 TEST(Line3D, CtorOk)
 {
     Line3D l1{Point3D{0,0,0}, Point3D{1,1,1}};
-    EXPECT_TRUE((l1.dir() == Vector3D{1,1,1}));
+    EXPECT_TRUE((l1.dir() == Vector3D{1,1,1}.norm_vec()));
 }
 
 TEST(Line3D, CtorDegenerate)
 {
     EXPECT_THROW((Line3D{Vector3D{0,0,0}, {0,0,0}}), Line3D::DegeneratedLine);
     EXPECT_THROW((Line3D{Point3D{1,1,1}, Point3D{1,1,1}}), Line3D::DegeneratedLine);
+}
+
+TEST(Line3D, NormalVecHasUnitLen)
+{
+    EXPECT_DOUBLE_EQ((Line3D{Vector3D{123,-456,789}, {0,0,0}}.dir().len()), 1);
+
+    EXPECT_DOUBLE_EQ((Line3D{Point3D{123,-456,789}, {-435,42,0}}.dir().len()), 1);
+}
+
+TEST(Line3D, Equality)
+{
+    EXPECT_TRUE((Line3D{Vector3D{1,1,1}, {0,0,0}} == Line3D{Vector3D{-2,-2,-2}, {3,3,3}}));
+
+    EXPECT_TRUE((Line3D{Vector3D{2,2,2}, {1,0,0}} == Line3D{Point3D{1,0,0}, {3,2,2}}));
+}
+
+TEST(Line3D, IsParallelTo)
+{
+    Vector3D v1{1,2,3};
+    Vector3D v2{-10,-20,-30};
+    Vector3D v3{1,-2,3};
+
+    Line3D l1{v1, Point3D{34,45,-67}};
+    Line3D l2{v2, Point3D{-345,345,234}}; 
+    Line3D l3{v3, Point3D{0,0,0}};
+
+    EXPECT_TRUE(l1.is_parallel_to(l2));
+    EXPECT_TRUE(l2.is_parallel_to(l1));
+
+    EXPECT_FALSE(l1.is_parallel_to(l3));
+    EXPECT_FALSE(l2.is_parallel_to(l3));
+    EXPECT_FALSE(l3.is_parallel_to(l1));
+    EXPECT_FALSE(l3.is_parallel_to(l2));
+}
+
+TEST(Common, IntersectPlanes)
+{
+    Plane p1 = {{1,1,1}, {0,0,0}};
+    Plane p2 = {{1,1,1}, {1,1,1}};
+    EXPECT_TRUE(intersect_planes(p1, p2) == std::nullopt);
+
+    p1 = {{13,0,0}, {0,0,0}};
+    p2 = {{0,42,0}, {0,0,0}};
+    Line3D l = {Vector3D{0,0,19}, Point3D{0,0,0}};
+    EXPECT_TRUE(l == *intersect_planes(p1, p2));
 }
 
 TEST(Plane, CtorOk)

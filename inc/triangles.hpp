@@ -74,6 +74,7 @@ Vector3D operator*(scalar_t scalar, const Vector3D& vector);
 Vector3D operator*(const Vector3D& vector, scalar_t scalar);
 Vector3D cross_prod(const Vector3D& lhs, const Vector3D& rhs);
 scalar_t dot_prod(const Vector3D& lhs, const Vector3D& rhs);
+scalar_t scalar_triple_prod(const Vector3D& a, const Vector3D& b, const Vector3D& c);
 
 class Line3D final
 {
@@ -117,9 +118,10 @@ public:
 
     Point3D p1() const;
     Point3D p2() const;
-    Point3D vec() const;
+    Vector3D vec() const;
 
-    //bool has_point(Point3D q) const;
+    bool has_point(Point3D q) const;
+    bool intersects_with(const LineSeg3D& rhs) const; ...
 };
 
 class Plane final

@@ -108,6 +108,11 @@ scalar_t dot_prod(const Vector3D &lhs, const Vector3D &rhs)
     return lhs.x()*rhs.x() + lhs.y()*rhs.y() + lhs.z()*rhs.z();
 }
 
+scalar_t scalar_triple_prod(const Vector3D &a, const Vector3D &b, const Vector3D &c)
+{
+    return dot_prod(a, cross_prod(b, c));
+}
+
 std::optional<Line3D> intersect_planes(Plane p1, Plane p2)
 {
     Vector3D n1 = p1.n_vec();
@@ -236,9 +241,15 @@ Point3D LineSeg3D::p2() const
     return p2_;
 }
 
-Point3D LineSeg3D::vec() const
+Vector3D LineSeg3D::vec() const
 {
     return vec_;
+}
+
+bool LineSeg3D::has_point(Point3D q) const
+{
+    Vector3D dir{p1_, q};
+    return cross_prod(vec_, dir).is_zero() && dot_prod(vec_, dir) >= 0 && dir.len() <= vec_.len();
 }
 
 } // namespace Geom

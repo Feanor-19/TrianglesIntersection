@@ -223,6 +223,22 @@ TEST(LineSeg3D, CtorDegenerate)
     EXPECT_THROW((LineSeg3D{p, zero}), LineSeg3D::DegeneratedLineSeg);
 }
 
+TEST(LineSeg3D, HasPoint)
+{
+    Point3D a{1,2,3};
+    Point3D b{4,-5,6};
+
+    LineSeg3D ls{a, b};
+
+    EXPECT_TRUE(ls.has_point(a));
+    EXPECT_TRUE(ls.has_point(b));
+    EXPECT_TRUE(ls.has_point((a+b)*0.5));
+    
+    EXPECT_FALSE(ls.has_point({0,0,0}));
+    EXPECT_FALSE(ls.has_point(a + -ls.vec()));
+    EXPECT_FALSE(ls.has_point(b + ls.vec()));
+}
+
 TEST(Plane, CtorOk)
 {
     Plane p{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};

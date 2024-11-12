@@ -206,6 +206,23 @@ TEST(Common, IntersectPlanes)
     EXPECT_TRUE(l == *intersect_planes(p1, p2));
 }
 
+TEST(LineSeg3D, CtorOk)
+{
+    LineSeg3D ls = {Point3D{1,2,3}, Point3D{4,5,6}};
+    EXPECT_TRUE((ls.vec() == Vector3D{3,3,3}));
+
+    ls = {Point3D{1,2,3}, Vector3D{3,3,3}};
+    EXPECT_TRUE((ls.p2() == Point3D{4,5,6}));
+}
+
+TEST(LineSeg3D, CtorDegenerate)
+{
+    Point3D p = {1,1,1};
+    Vector3D zero = {0,0,0};
+    EXPECT_THROW((LineSeg3D{p, p}), LineSeg3D::DegeneratedLineSeg);
+    EXPECT_THROW((LineSeg3D{p, zero}), LineSeg3D::DegeneratedLineSeg);
+}
+
 TEST(Plane, CtorOk)
 {
     Plane p{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};

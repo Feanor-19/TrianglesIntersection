@@ -66,6 +66,7 @@ public:
 
     Vector3D norm_vec() const;
     scalar_t len() const;
+    bool is_zero() const;
 };
 
 Vector3D operator+(const Vector3D& lhs, const Vector3D& rhs);
@@ -96,6 +97,29 @@ public:
     Point3D p() const;
 
     bool has_point(Point3D q) const;
+};
+
+class LineSeg3D final 
+{
+private:
+    Point3D p1_;
+    Point3D p2_;
+    Vector3D vec_; //must be (p2_- p1_)
+public:
+    class DegeneratedLineSeg : GeomException
+    {
+    public:
+        DegeneratedLineSeg() : GeomException("Attempt to construct a degenerated line segment") {}
+    }; 
+
+    LineSeg3D(Point3D p1, Point3D p2);
+    LineSeg3D(Point3D p, Vector3D v);
+
+    Point3D p1() const;
+    Point3D p2() const;
+    Point3D vec() const;
+
+    //bool has_point(Point3D q) const;
 };
 
 class Plane final

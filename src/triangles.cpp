@@ -61,7 +61,7 @@ Vector3D::operator Point3D() const
 Vector3D Vector3D::norm_vec() const
 {
     scalar_t len = sqrt(x_*x_ + y_*y_ + z_*z_);
-    if (iszero(len))
+    if (is_zero())
         return Vector3D{0, 0, 0};
     return Vector3D{x_/len, y_/len, z_/len};
 }
@@ -69,6 +69,11 @@ Vector3D Vector3D::norm_vec() const
 scalar_t Vector3D::len() const
 {
     return sqrt(x_ * x_ + y_ * y_ + z_ * z_);
+}
+
+bool Vector3D::is_zero() const
+{
+    return eq(len(), 0);
 }
 
 Vector3D operator+(const Vector3D &lhs, const Vector3D &rhs)
@@ -205,6 +210,35 @@ Point3D Line3D::p() const
 bool Line3D::has_point(Point3D q) const
 {
     return eq(cross_prod(dir_, Vector3D{q} + -Vector3D{p_}).len(), 0);
+}
+
+LineSeg3D::LineSeg3D(Point3D p1, Point3D p2) :
+    p1_(p1), p2_(p2), vec_(p1, p2)
+{
+    if (eq(vec_.len(), 0))
+        throw DegeneratedLineSeg();
+}
+
+LineSeg3D::LineSeg3D(Point3D p, Vector3D v) :
+    p1_(p), p2_(p + v), vec_(v)
+{
+    if (eq(vec_.len(), 0))
+        throw DegeneratedLineSeg();
+}
+
+Point3D LineSeg3D::p1() const
+{
+    return p1_;
+}
+
+Point3D LineSeg3D::p2() const
+{
+    return p2_;
+}
+
+Point3D LineSeg3D::vec() const
+{
+    return vec_;
 }
 
 } // namespace Geom

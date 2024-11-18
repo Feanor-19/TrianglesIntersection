@@ -1,6 +1,7 @@
 #include "triangles.hpp"
 
 #include <cmath>
+#include <cassert>
 
 namespace Geom
 {
@@ -80,6 +81,11 @@ Vector3D operator+(const Vector3D &lhs, const Vector3D &rhs)
 {
     Vector3D tmp{lhs}; tmp += rhs;
     return tmp;
+}
+
+Vector3D operator-(const Vector3D &lhs, const Vector3D &rhs)
+{
+    return lhs + -rhs;
 }
 
 Vector3D operator*(scalar_t scalar, const Vector3D& vector)
@@ -214,7 +220,7 @@ Point3D Line3D::p() const
 
 bool Line3D::has_point(Point3D q) const
 {
-    return eq(cross_prod(dir_, Vector3D{q} + -Vector3D{p_}).len(), 0);
+    return cross_prod(dir_, Vector3D{q} + -Vector3D{p_}).is_zero();
 }
 
 LineSeg3D::LineSeg3D(Point3D p1, Point3D p2) :
@@ -250,6 +256,20 @@ bool LineSeg3D::has_point(Point3D q) const
 {
     Vector3D dir{p1_, q};
     return cross_prod(vec_, dir).is_zero() && dot_prod(vec_, dir) >= 0 && dir.len() <= vec_.len();
+}
+
+std::optional<Point3D> LineSeg3D::intersect_with_complanar_line(const Line3D &line) const
+{
+    assert(eq(scalar_triple_prod(vec_, line.dir(), line.p() - p1_), 0));
+
+    if (cross_prod(vec_, line.dir()).is_zero())
+        return std::nullopt;
+
+    Vector3D a = line.p() - p1_;
+    Vector3D norm_lineseg_vec = vec_.norm_vec();
+    Vector3D b = -a + dot_prod(a, norm_lineseg_vec) * norm_lineseg_vec;
+    scalar_t b_len = b.len();
+    return line.p() + line.dir() * ((b_len * b_len) / dot_prod(b, line.dir()));
 }
 
 } // namespace Geom

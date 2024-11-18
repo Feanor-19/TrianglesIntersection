@@ -70,6 +70,7 @@ public:
 };
 
 Vector3D operator+(const Vector3D& lhs, const Vector3D& rhs);
+Vector3D operator-(const Vector3D& lhs, const Vector3D& rhs);
 Vector3D operator*(scalar_t scalar, const Vector3D& vector);
 Vector3D operator*(const Vector3D& vector, scalar_t scalar);
 Vector3D cross_prod(const Vector3D& lhs, const Vector3D& rhs);
@@ -121,7 +122,10 @@ public:
     Vector3D vec() const;
 
     bool has_point(Point3D q) const;
-    bool intersects_with(const LineSeg3D& rhs) const; ...
+    
+    // finds point of intersection with line, which must be in the same plane as this segment
+    // if the intersection is not a point (or there is no intersection), std::nullopt is returned
+    std::optional<Point3D> intersect_with_complanar_line(const Line3D &line) const;
 };
 
 class Plane final

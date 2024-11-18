@@ -239,6 +239,20 @@ TEST(LineSeg3D, HasPoint)
     EXPECT_FALSE(ls.has_point(b + ls.vec()));
 }
 
+TEST(LineSeg3D, IntersectWithComplanarLine)
+{
+    Line3D l1{Vector3D{1,0,0}, Point3D{0,0,0}};
+    
+    LineSeg3D ls1{Point3D{2,0,0}, Point3D{3,0,0}};
+    EXPECT_FALSE(ls1.intersect_with_complanar_line(l1));
+
+    LineSeg3D ls2{Point3D{0.5,0,0}, Point3D{2,0,0}};
+    EXPECT_FALSE(ls2.intersect_with_complanar_line(l1)); // because intersection isn't a point
+
+    LineSeg3D ls3{Point3D{2,-1,0}, Point3D{2,1,0}};
+    EXPECT_TRUE((*ls3.intersect_with_complanar_line(l1) == Point3D{2,0,0}));
+}
+
 TEST(Plane, CtorOk)
 {
     Plane p{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};

@@ -175,6 +175,17 @@ TEST(Line3D, Equality)
     EXPECT_TRUE((Line3D{Vector3D{2,2,2}, {1,0,0}} == Line3D{Point3D{1,0,0}, {3,2,2}}));
 }
 
+TEST(Line3D, HasPoint)
+{
+    Line3D l{Point3D{0,0,0}, Point3D{1,2,3}};
+
+    EXPECT_TRUE(l.has_point({0,0,0}));
+    EXPECT_TRUE(l.has_point({1,2,3}));
+    EXPECT_TRUE(l.has_point({-1,-2,-3}));
+    
+    EXPECT_FALSE(l.has_point({1,-2,3}));
+}
+
 TEST(Line3D, IsParallelTo)
 {
     Vector3D v1{1,2,3};
@@ -239,6 +250,15 @@ TEST(LineSeg3D, HasPoint)
     EXPECT_FALSE(ls.has_point(b + ls.vec()));
 }
 
+TEST(LineSeg3D, VecConsistent)
+{
+    LineSeg3D ls{Point3D{1,2,3}, Point3D{4,5,6}};
+    EXPECT_TRUE((ls.vec() == Vector3D{3,3,3}));
+
+    LineSeg3D ls2{Point3D{1,2,3}, Vector3D{4,5,6}};
+    EXPECT_TRUE((ls2.vec() == Vector3D{4,5,6}));
+}
+
 TEST(LineSeg3D, IntersectWithComplanarLine)
 {
     Line3D l1{Vector3D{1,0,0}, Point3D{0,0,0}};
@@ -287,6 +307,22 @@ TEST(Plane, NormalVecHasUnitLen)
             Point3D{-252.435,233.43,454}
             };
     EXPECT_DOUBLE_EQ(q.n_vec().len(), 1);
+}
+
+TEST(Plane, HasPoint)
+{
+    Point3D p1{1,2,3};
+    Point3D p2{4,5,-6};
+    Point3D p3{-7,8,19};
+
+    Plane plane1{p1,p2,p3};
+    EXPECT_TRUE(plane1.has_point(p1));
+    EXPECT_TRUE(plane1.has_point(p2));
+    EXPECT_TRUE(plane1.has_point(p3));
+
+    Plane plane2{Vector3D{0,0,1}, Point3D{0,0,0}};
+    EXPECT_TRUE(plane2.has_point({19,-38, 0}));
+    EXPECT_FALSE(plane2.has_point({0,0,1}));
 }
 
 TEST(Plane, SignedDistToPoint)

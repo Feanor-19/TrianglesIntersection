@@ -272,4 +272,50 @@ std::optional<Point3D> LineSeg3D::intersect_with_complanar_line(const Line3D &li
     return line.p() + line.dir() * ((b_len * b_len) / dot_prod(b, line.dir()));
 }
 
+Triangle3D::Triangle3D(Point3D p1, Point3D p2, Point3D p3) : 
+    p1_(p1), p2_(p2), p3_(p3), plane_(Vector3D{1,0,0}, Point3D{0,0,0})
+{
+    if (p1_ == p2_ || p2_ == p3_ || p1_ == p3_)
+        throw DegeneratedTriangle();
+
+    plane_ = Plane{p1, p2, p3};
+}
+
+Point3D Triangle3D::p1() const
+{
+    return p1_;
+}
+
+Point3D Triangle3D::p2() const
+{
+    return p2_;
+}
+
+Point3D Triangle3D::p3() const
+{
+    return p3_;
+}
+
+Plane Triangle3D::plane() const
+{
+    return plane_;
+}
+
+bool Triangle3D::has_point(const Point3D &p) const
+{
+    return false;
+}
+
+bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
+{
+    // check if any of the endpoints of lineseg belong to the triangle
+
+    // check if points are on different sides of the triangle's plane
+
+    // get line of the lineseg, intersect it with the triangle's plane, check if 
+    // intersection point belongs to the triangle
+
+    ...
+}
+
 } // namespace Geom

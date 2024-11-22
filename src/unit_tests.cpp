@@ -353,3 +353,27 @@ TEST(Plane, IsParallelTo)
     EXPECT_FALSE(p3.is_parallel_to(p1));
     EXPECT_FALSE(p3.is_parallel_to(p2));
 }
+
+TEST(Triangle3D, CtorOk)
+{
+    Point3D p1{0,0,0};
+    Point3D p2{0,1,0};
+    Point3D p3{0,0,1};
+    
+    Triangle3D t{p1, p2, p3};
+
+    EXPECT_TRUE(t.p1() == p1);
+    EXPECT_TRUE(t.p2() == p2);
+    EXPECT_TRUE(t.p3() == p3);
+    EXPECT_TRUE((t.plane() == Plane{p1, p2, p3}));
+}
+
+TEST(Triangle3D, CtorDegenerate)
+{
+    Point3D p1{1,2,3};
+    Point3D p2{4,-5,9};
+    EXPECT_THROW((Triangle3D{p1,p1,p2}), Triangle3D::DegeneratedTriangle);
+    EXPECT_THROW((Triangle3D{p1,p2,p2}), Triangle3D::DegeneratedTriangle);
+    EXPECT_THROW((Triangle3D{p2,p1,p2}), Triangle3D::DegeneratedTriangle);
+    EXPECT_THROW((Triangle3D{p1,p1,p1}), Triangle3D::DegeneratedTriangle);
+}

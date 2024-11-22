@@ -135,7 +135,7 @@ private:
     Point3D p_;
 public:
     class DegeneratedPlane : GeomException
-        {
+    {
     public:
         DegeneratedPlane() : GeomException("Attempt to construct a degenerated plane") {}
     }; 
@@ -155,5 +155,32 @@ public:
 };
 
 std::optional<Line3D> intersect_planes(Plane p1, Plane p2);
+
+class Triangle3D final 
+{
+private:
+    Point3D p1_; 
+    Point3D p2_;
+    Point3D p3_; 
+    Plane plane_; // must be consistent with other private fields
+public:
+    class DegeneratedTriangle : GeomException
+    {
+    public:
+        DegeneratedTriangle() : GeomException("Attempt to construct a degenerated plane") {}    
+    };
+
+    Triangle3D(Point3D p1, Point3D p2, Point3D p3);
+
+    Point3D p1() const;
+    Point3D p2() const;
+    Point3D p3() const;
+    Plane plane() const;
+
+    bool has_point(const Point3D& p) const;
+
+    bool intersects_LineSeg3D(const LineSeg3D& lineseg) const;
+
+};
 
 } // namespace Geom

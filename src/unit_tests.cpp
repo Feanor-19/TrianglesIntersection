@@ -422,3 +422,25 @@ TEST(Triangle3D, HasPoint)
     EXPECT_TRUE(t.has_point({0,0.5,0}));
     EXPECT_TRUE(t.has_point({0, 0, 0.5}));
 }
+
+TEST(Triangle3D, IntersectsLineSeg3D)
+{
+    Triangle3D t{{0,0,0}, {0,1,0}, {0,0,1}};
+
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{0,0,0},Point3D{2,2,2}}));
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{0,1,0},Point3D{2,2,2}}));
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{0,0,1},Point3D{2,2,2}}));
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{2,2,2},Point3D{0,0,0}}));
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{2,2,2},Point3D{0,1,0}}));
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{2,2,2},Point3D{0,0,1}}));
+
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{1,0.5,0.5},Point3D{-1,0.5,0.5}}));
+    EXPECT_TRUE(t.intersects_LineSeg3D({Point3D{1,0.5,0.5},Point3D{-1,0,0}}));
+    
+    EXPECT_FALSE(t.intersects_LineSeg3D({Point3D{1,1,1}, Point3D{2,2,2}}));
+    EXPECT_FALSE(t.intersects_LineSeg3D({Point3D{1,0,0}, Point3D{1,2,2}}));
+    EXPECT_FALSE(t.intersects_LineSeg3D({Point3D{-1,0,0}, Point3D{-1,2,2}}));
+
+    EXPECT_FALSE(t.intersects_LineSeg3D({Point3D{1,2.5,0.5},Point3D{-1,2.5,0.5}}));
+    EXPECT_FALSE(t.intersects_LineSeg3D({Point3D{1,0.5,2.5},Point3D{-1,0.5,2.5}}));
+}

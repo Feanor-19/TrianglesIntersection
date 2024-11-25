@@ -335,9 +335,14 @@ bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
 
     // get line of the lineseg, intersect it with the triangle's plane, check if 
     // intersection point belongs to the triangle
+    Point3D line_p = lineseg.p1();
+    Vector3D line_vec = lineseg.vec();
+    Vector3D plane_n = plane_.n_vec();
 
-    Line3D line{lineseg.p1(), lineseg.vec()};
-    ...
+    Vector3D intsc_dir = (-plane_.signed_dist_to_point(line_p) / dot_prod(line_vec, plane_n)) * line_vec; 
+    Point3D intsc_p = line_p + intsc_dir;
+
+    return has_point(intsc_p);
 }
 
 } // namespace Geom

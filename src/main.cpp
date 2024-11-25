@@ -12,7 +12,7 @@ int main()
 
 
     std::cout << std::boolalpha;
-    std::cout << t.has_point({0, 0.8, 0.2}) << std::endl;
+    std::cout << t.intersects_LineSeg3D({Point3D{1,0.5,0.5},Point3D{-1,0.5,0.5}}) << std::endl;
 
     return 0;
 }

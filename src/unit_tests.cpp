@@ -330,9 +330,9 @@ TEST(Plane, SignedDistToPoint)
     Point3D point{1, 2, 3};
     Plane plane{Vector3D{1,1,1}, point};
 
-    EXPECT_DOUBLE_EQ(plane.signed_dist_to_point(point), 0);
-    EXPECT_GT(plane.signed_dist_to_point({2,3,4}), 0);
-    EXPECT_LT(plane.signed_dist_to_point({0,1,2}), 0);
+    EXPECT_DOUBLE_EQ(plane.s_dist_to_point(point), 0);
+    EXPECT_GT(plane.s_dist_to_point({2,3,4}), 0);
+    EXPECT_LT(plane.s_dist_to_point({0,1,2}), 0);
 }
 
 TEST(Plane, IsParallelTo)

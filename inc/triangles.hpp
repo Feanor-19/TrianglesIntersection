@@ -135,6 +135,7 @@ public:
     
     // finds point of intersection with line, which must be in the same plane as this segment
     // if the intersection is not a point (or there is no intersection), std::nullopt is returned
+    // TODO CHECK IF IT IS ACTUALLY NEEDED
     std::optional<Point3D> intersect_with_complanar_line(const Line3D &line) const;
 };
 
@@ -161,7 +162,7 @@ public:
 
     bool has_point(Point3D q) const;
 
-    scalar_t signed_dist_to_point(Point3D q) const;
+    scalar_t s_dist_to_point(Point3D q) const;
 };
 
 std::optional<Line3D> intersect_planes(Plane p1, Plane p2);
@@ -190,6 +191,7 @@ public:
     bool has_point(const Point3D& p) const;
 
     bool intersects_LineSeg3D(const LineSeg3D& lineseg) const;
+    bool intersects_Triangle3D(const Triangle3D& triangle) const;
 };
 
 } // namespace Geom

@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <tuple>
 
 namespace Geom
 {
@@ -179,7 +180,7 @@ bool Plane::has_point(Point3D q) const
     return eq(dot_prod(Vector3D{p_, q}, n_vec_), 0);
 }
 
-scalar_t Plane::signed_dist_to_point(Point3D q) const
+scalar_t Plane::s_dist_to_point(Point3D q) const
 {
    return dot_prod(n_vec_, Vector3D{p_, q});
 }
@@ -326,9 +327,9 @@ bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
     if (has_point(lineseg.p1()) || has_point(lineseg.p2()))
         return true;
 
-    // check if points are on different sides of the triangle's plane
-    scalar_t s_dist1 = plane_.signed_dist_to_point(lineseg.p1());
-    scalar_t s_dist2 = plane_.signed_dist_to_point(lineseg.p2());
+    // check if points are on the same side of the triangle's plane
+    scalar_t s_dist1 = plane_.s_dist_to_point(lineseg.p1());
+    scalar_t s_dist2 = plane_.s_dist_to_point(lineseg.p2());
 
     if ((geq(s_dist1, 0) && geq(s_dist2, 0)) || (leq(s_dist1, 0) && leq(s_dist2, 0)))
         return false;
@@ -339,10 +340,108 @@ bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
     Vector3D line_vec = lineseg.vec();
     Vector3D plane_n = plane_.n_vec();
 
-    Vector3D intsc_dir = (-plane_.signed_dist_to_point(line_p) / dot_prod(line_vec, plane_n)) * line_vec; 
+    Vector3D intsc_dir = (-plane_.s_dist_to_point(line_p) / dot_prod(line_vec, plane_n)) * line_vec; 
     Point3D intsc_p = line_p + intsc_dir;
 
     return has_point(intsc_p);
+}
+
+// helper for 'intersects_Triangle3D'
+namespace PullDiffSign{
+
+using PairPointSc = std::pair<Point3D, scalar_t>;
+using Tuple3 = std::tuple<PairPointSc,PairPointSc,PairPointSc>;
+
+// assumes that two of the given numbers has one sign, and the other one - another sign,
+// and returns the one with different from other two's sign 
+inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
+    if (a.second > b.second)
+        std::swap(a, b);
+    if (a.second > c.second)
+        std::swap(a, c);
+
+    if (b.second < 0) // if two were negative, one positive 
+        return {c, b, a};
+
+    // if two were positive, one negative
+    return {a, b, c};
+}
+
+} // namespace PullDiffSign
+
+// helper for 'intersects_Triangle3D'
+inline bool are_all_the_same_sign(scalar_t a, scalar_t b, scalar_t c)
+{
+    return (geq(a, 0) && geq(b, 0) && geq(c, 0))
+        || (leq(a, 0) && leq(b, 0) && leq(c, 0));
+}
+
+// helper for 'intersects_Triangle3D'
+// computes interval on the line, clipped by the triangle, intersecting it
+inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line, 
+                                                      Point3D p1_, Point3D p2_, Point3D p3_,
+                                                      scalar_t s_dist1_, scalar_t s_dist2_, scalar_t s_dist3_)
+{
+    Point3D l_p = intsc_line.p();
+    Vector3D l_d = intsc_line.dir(); 
+
+    auto [pps_df, pps0, pps1] = PullDiffSign::pull_diff_sign({p1_, s_dist1_}, {p2_, s_dist2_}, {p3_, s_dist3_});
+    auto [p_df, s_dist_df] = pps_df; auto [p0, s_dist0] = pps0; auto [p1, s_dist1] = pps1;
+
+    // projecting points on the line
+    scalar_t pr_p0   = dot_prod(l_d, p0   - l_p);
+    scalar_t pr_p1   = dot_prod(l_d, p1   - l_p);
+    scalar_t pr_p_df = dot_prod(l_d, p_df - l_p);
+
+    scalar_t t0 = pr_p0 + (pr_p_df - pr_p0) * s_dist0 / (s_dist0 - s_dist_df);
+    scalar_t t1 = pr_p1 + (pr_p_df - pr_p1) * s_dist1 / (s_dist1 - s_dist_df);
+    return {t0, t1};
+}
+
+bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
+{
+    const Triangle3D &t0 = *this;
+    const Triangle3D &t1 = triangle;
+
+    // affine moving?    
+
+    // ---
+
+    const Point3D &p01 = t0.p1(); const Point3D &p02 = t0.p2(); const Point3D &p03 = t0.p3();
+    const Point3D &p11 = t1.p1(); const Point3D &p12 = t1.p2(); const Point3D &p13 = t1.p3();
+
+    scalar_t s_dist11 = plane_.s_dist_to_point(p11);
+    scalar_t s_dist12 = plane_.s_dist_to_point(p12);
+    scalar_t s_dist13 = plane_.s_dist_to_point(p13);
+
+    if (are_all_the_same_sign(s_dist11, s_dist12, s_dist13))
+        return false;
+
+    const Plane &t0_plane = plane_; 
+    const Plane &t1_plane = t1.plane();
+    if (plane_.is_parallel_to(t1_plane))
+    {
+        if (!(plane_ == t1_plane))
+            return false;
+
+        // do 2D intersection
+    } 
+
+    scalar_t s_dist01 = t1_plane.s_dist_to_point(p01);
+    scalar_t s_dist02 = t1_plane.s_dist_to_point(p02);
+    scalar_t s_dist03 = t1_plane.s_dist_to_point(p03);
+
+    if (are_all_the_same_sign(s_dist01, s_dist02, s_dist03))
+        return false;
+
+    Line3D intsc_line = *intersect_planes(t0_plane, t1_plane);
+
+    auto [t00, t01] = compute_interval(intsc_line, p01, p02, p03, s_dist01, s_dist02, s_dist03);
+    auto [t10, t11] = compute_interval(intsc_line, p11, p12, p13, s_dist11, s_dist12, s_dist13);
+
+    // compare t00, t01, t10, t11
+
+    return false;
 }
 
 } // namespace Geom

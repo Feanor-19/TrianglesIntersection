@@ -255,7 +255,7 @@ Vector3D LineSeg3D::vec() const
 bool LineSeg3D::has_point(Point3D q) const
 {
     Vector3D dir{p1_, q};
-    return cross_prod(vec_, dir).is_zero() && dot_prod(vec_, dir) >= 0 && dir.len() <= vec_.len();
+    return cross_prod(vec_, dir).is_zero() && geq(dot_prod(vec_, dir), 0) && leq(dir.len(), vec_.len());
 }
 
 std::optional<Point3D> LineSeg3D::intersect_with_complanar_line(const Line3D &line) const
@@ -323,13 +323,21 @@ bool Triangle3D::has_point(const Point3D &p) const
 bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
 {
     // check if any of the endpoints of lineseg belong to the triangle
+    if (has_point(lineseg.p1()) || has_point(lineseg.p2()))
+        return true;
 
     // check if points are on different sides of the triangle's plane
+    scalar_t s_dist1 = plane_.signed_dist_to_point(lineseg.p1());
+    scalar_t s_dist2 = plane_.signed_dist_to_point(lineseg.p2());
+
+    if ((geq(s_dist1, 0) && geq(s_dist2, 0)) || (leq(s_dist1, 0) && leq(s_dist2, 0)))
+        return false;
 
     // get line of the lineseg, intersect it with the triangle's plane, check if 
     // intersection point belongs to the triangle
 
-    //...
+    Line3D line{lineseg.p1(), lineseg.vec()};
+    ...
 }
 
 } // namespace Geom

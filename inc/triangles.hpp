@@ -190,7 +190,6 @@ public:
     bool has_point(const Point3D& p) const;
 
     bool intersects_LineSeg3D(const LineSeg3D& lineseg) const;
-
 };
 
 } // namespace Geom

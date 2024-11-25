@@ -8,8 +8,11 @@ int main()
 
     int i = 0;
 
+    Triangle3D t{{0,0,0}, {0,1,0}, {0,0,1}};
+
+
     std::cout << std::boolalpha;
-    std::cout << (Line3D{Vector3D{2,2,2}, {1,0,0}} == Line3D{Point3D{1,0,0}, {3,2,2}}) << std::endl;
+    std::cout << t.has_point({0, 0.8, 0.2}) << std::endl;
 
     return 0;
 }

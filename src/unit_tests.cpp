@@ -377,3 +377,48 @@ TEST(Triangle3D, CtorDegenerate)
     EXPECT_THROW((Triangle3D{p2,p1,p2}), Triangle3D::DegeneratedTriangle);
     EXPECT_THROW((Triangle3D{p1,p1,p1}), Triangle3D::DegeneratedTriangle);
 }
+
+TEST(Triangle3D, HasPoint)
+{
+    Triangle3D t{{0,0,0}, {0,1,0}, {0,0,1}};
+
+    EXPECT_TRUE(t.has_point({0, 0, 0}));
+    EXPECT_TRUE(t.has_point({0, 1, 0}));
+    EXPECT_TRUE(t.has_point({0, 0, 1}));
+
+    EXPECT_FALSE(t.has_point({1,0,0}));
+    EXPECT_FALSE(t.has_point({-1,0,0}));
+    EXPECT_FALSE(t.has_point({0,2,0}));
+    EXPECT_FALSE(t.has_point({0,1,1}));
+    EXPECT_FALSE(t.has_point({0,0,2}));
+    EXPECT_FALSE(t.has_point({0,-1,0}));
+    EXPECT_FALSE(t.has_point({0,0,-1}));
+
+    EXPECT_TRUE(t.has_point({0, 0.2, 0.2}));
+    EXPECT_TRUE(t.has_point({0, 0.5, 0.5}));
+    EXPECT_TRUE(t.has_point({0, 0.8, 0.2}));
+    EXPECT_TRUE(t.has_point({0, 0.2, 0.8}));
+    EXPECT_TRUE(t.has_point({0,0.5,0}));
+    EXPECT_TRUE(t.has_point({0, 0, 0.5}));
+
+    t = Triangle3D{{0,0,0}, {0,0,1}, {0,1,0}};
+
+    EXPECT_TRUE(t.has_point({0, 0, 0}));
+    EXPECT_TRUE(t.has_point({0, 1, 0}));
+    EXPECT_TRUE(t.has_point({0, 0, 1}));
+
+    EXPECT_FALSE(t.has_point({1,0,0}));
+    EXPECT_FALSE(t.has_point({-1,0,0}));
+    EXPECT_FALSE(t.has_point({0,2,0}));
+    EXPECT_FALSE(t.has_point({0,1,1}));
+    EXPECT_FALSE(t.has_point({0,0,2}));
+    EXPECT_FALSE(t.has_point({0,-1,0}));
+    EXPECT_FALSE(t.has_point({0,0,-1}));
+
+    EXPECT_TRUE(t.has_point({0, 0.2, 0.2}));
+    EXPECT_TRUE(t.has_point({0, 0.5, 0.5}));
+    EXPECT_TRUE(t.has_point({0, 0.8, 0.2}));
+    EXPECT_TRUE(t.has_point({0, 0.2, 0.8}));
+    EXPECT_TRUE(t.has_point({0,0.5,0}));
+    EXPECT_TRUE(t.has_point({0, 0, 0.5}));
+}

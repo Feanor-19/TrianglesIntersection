@@ -23,6 +23,16 @@ inline bool eq(scalar_t a, scalar_t b)
     return fabs(a - b) < DBL_PRECISION;
 }
 
+inline bool geq(scalar_t a, scalar_t b)
+{
+    return (a > b) || eq(a, b);
+}
+
+inline bool leq(scalar_t a, scalar_t b)
+{
+    return (a < b) || eq(a, b);
+}
+
 // if one of parameters of the constructor is NaN
 class NaNCtorParam : GeomException 
 {

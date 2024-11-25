@@ -303,7 +303,21 @@ Plane Triangle3D::plane() const
 
 bool Triangle3D::has_point(const Point3D &p) const
 {
-    return false;
+    if (!plane_.has_point(p))
+        return false;
+
+    Vector3D v1 = cross_prod(p2_ - p1_, p - p1_);
+    Vector3D v2 = cross_prod(p3_ - p2_, p - p2_);
+    Vector3D v3 = cross_prod(p1_ - p3_, p - p3_);
+
+    scalar_t s1 = dot_prod(v1, plane_.n_vec());
+    scalar_t s2 = dot_prod(v2, plane_.n_vec());
+    scalar_t s3 = dot_prod(v3, plane_.n_vec());
+
+    if ((geq(s1, 0) && geq(s2, 0) && geq(s3, 0) ) || (leq(s1, 0) && leq(s2, 0) && leq(s3, 0)))
+        return true;
+
+    return false; 
 }
 
 bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
@@ -315,7 +329,7 @@ bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
     // get line of the lineseg, intersect it with the triangle's plane, check if 
     // intersection point belongs to the triangle
 
-    ...
+    //...
 }
 
 } // namespace Geom

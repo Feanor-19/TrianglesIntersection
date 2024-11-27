@@ -368,6 +368,12 @@ TEST(Triangle3D, CtorOk)
     EXPECT_TRUE((t.plane() == Plane{p1, p2, p3}));
 }
 
+TEST(Triangle3D, PlaneNVecIsRight)
+{
+    Triangle3D t{{1.23, -4.56, 7.89}, {4.5, 45.4, -4.56}, {-7.34, 5.345, 9.386}};
+    EXPECT_TRUE(t.plane().n_vec() == cross_prod({t.p1(), t.p2()}, {t.p1(), t.p3()}).norm_vec());
+}
+
 TEST(Triangle3D, CtorDegenerate)
 {
     Point3D p1{1,2,3};

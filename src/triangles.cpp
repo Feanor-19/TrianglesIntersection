@@ -279,7 +279,7 @@ Triangle3D::Triangle3D(Point3D p1, Point3D p2, Point3D p3) :
     if (p1_ == p2_ || p2_ == p3_ || p1_ == p3_)
         throw DegeneratedTriangle();
 
-    plane_ = Plane{p1, p2, p3};
+    plane_ = Plane{cross_prod({p1_, p2_}, {p1_, p3_}), p1_};
 }
 
 Point3D Triangle3D::p1() const
@@ -398,12 +398,45 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line,
     return {t0, t1};
 }
 
+// helper for 'intersects_Triangle3D'
+// TODO вставить ссылку на книгу и параграф (7.7.2)
+inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
+{
+    Point3D p01 = t0.p1(), p02 = t0.p2(), p03 = t0.p3(), p11 = t1.p1(), p12 = t1.p2(), p13 = t1.p3();
+    Vector3D n0 = t0.plane().n_vec(), n1 = t1.plane().n_vec();
+
+    //REVIEW - Попытка уменьшить количество _маленького_ одинакового кода, но не используя макросы
+    auto check_edge = [](const Point3D &p_i, const Point3D &p_i_plus_1, const Vector3D &n, const Triangle3D &other_t)
+    {
+        Vector3D ax_dir = cross_prod(p_i_plus_1 - p_i, n);
+        return leq(dot_prod(ax_dir, other_t.p1() - p_i), 0) > 0 
+            && leq(dot_prod(ax_dir, other_t.p2() - p_i), 0) > 0 
+            && leq(dot_prod(ax_dir, other_t.p3() - p_i), 0) > 0;
+    };
+
+    auto check_triangle = [check_edge](const Triangle3D &this_t, const Triangle3D &other_t)
+    {
+        Vector3D this_n = this_t.plane().n_vec();
+        if ( check_edge(this_t.p1(), this_t.p2(), this_n, other_t) 
+          || check_edge(this_t.p2(), this_t.p3(), this_n, other_t)
+          || check_edge(this_t.p3(), this_t.p1(), this_n, other_t))
+            return true;
+        return false;
+    };
+
+    if (check_triangle(t0, t1) || check_triangle(t1, t0))
+        return true;
+
+    return false;
+}
+
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
     const Triangle3D &t0 = *this;
     const Triangle3D &t1 = triangle;
 
-    // affine moving?    
+    // TODO
+    // affine moving?
 
     // ---
 
@@ -424,7 +457,7 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
         if (!(plane_ == t1_plane))
             return false;
 
-        // do 2D intersection
+        return intersect_Triangle2D(t0, t1);
     } 
 
     scalar_t s_dist01 = t1_plane.s_dist_to_point(p01);
@@ -439,6 +472,7 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
     auto [t00, t01] = compute_interval(intsc_line, p01, p02, p03, s_dist01, s_dist02, s_dist03);
     auto [t10, t11] = compute_interval(intsc_line, p11, p12, p13, s_dist11, s_dist12, s_dist13);
 
+    // TODO
     // compare t00, t01, t10, t11
 
     return false;

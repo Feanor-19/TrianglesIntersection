@@ -173,7 +173,8 @@ private:
     Point3D p1_; 
     Point3D p2_;
     Point3D p3_; 
-    Plane plane_; // must be consistent with other private fields
+    Plane plane_; // must be consistent with other private fields:
+                  // plane_.n_vec must be [p1p2, p1p3]
 public:
     class DegeneratedTriangle : GeomException
     {

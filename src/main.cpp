@@ -8,12 +8,10 @@ int main()
 
     int i = 0;
 
-    Triangle3D t{{0,0,0}, {0,1,0}, {0,0,1}};
-
-    
+    Triangle3D t0{{1.23, -4.56, 7.89}, {4.5, 45.4, -4.56}, {-7.34, 5.345, 9.386}};
 
     std::cout << std::boolalpha;
-    std::cout << t.intersects_LineSeg3D({Point3D{1,0.5,0.5},Point3D{-1,0.5,0.5}}) << std::endl;
+    std::cout << t0.intersects_Triangle3D(t0) << std::endl;
 
     return 0;
 }

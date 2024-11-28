@@ -372,8 +372,8 @@ inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
 // helper for 'intersects_Triangle3D'
 inline bool are_all_the_same_sign(scalar_t a, scalar_t b, scalar_t c)
 {
-    return (geq(a, 0) && geq(b, 0) && geq(c, 0))
-        || (leq(a, 0) && leq(b, 0) && leq(c, 0));
+    return (a > 0 && b > 0 && c > 0)
+        || (a < 0 && b < 0 && c < 0);
 }
 
 // helper for 'intersects_Triangle3D'
@@ -417,17 +417,12 @@ inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
     auto check_triangle = [check_edge](const Triangle3D &this_t, const Triangle3D &other_t)
     {
         Vector3D this_n = this_t.plane().n_vec();
-        if ( check_edge(this_t.p1(), this_t.p2(), this_n, other_t) 
-          || check_edge(this_t.p2(), this_t.p3(), this_n, other_t)
-          || check_edge(this_t.p3(), this_t.p1(), this_n, other_t))
-            return true;
-        return false;
+        return check_edge(this_t.p1(), this_t.p2(), this_n, other_t) 
+            || check_edge(this_t.p2(), this_t.p3(), this_n, other_t)
+            || check_edge(this_t.p3(), this_t.p1(), this_n, other_t);
     };
 
-    if (check_triangle(t0, t1) || check_triangle(t1, t0))
-        return true;
-
-    return false;
+    return check_triangle(t0, t1) || check_triangle(t1, t0);
 }
 
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
@@ -447,6 +442,7 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
     scalar_t s_dist12 = plane_.s_dist_to_point(p12);
     scalar_t s_dist13 = plane_.s_dist_to_point(p13);
 
+    // TODO нулевое расстояние не должен попадать под это?
     if (are_all_the_same_sign(s_dist11, s_dist12, s_dist13))
         return false;
 
@@ -472,8 +468,8 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
     auto [t00, t01] = compute_interval(intsc_line, p01, p02, p03, s_dist01, s_dist02, s_dist03);
     auto [t10, t11] = compute_interval(intsc_line, p11, p12, p13, s_dist11, s_dist12, s_dist13);
 
-    // TODO
-    // compare t00, t01, t10, t11
+    return in_range(t00, t10, t01) || in_range(t00, t11, t01) 
+        || in_range(t10, t00, t11) || in_range(t10, t01, t11);    
 
     return false;
 }

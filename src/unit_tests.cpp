@@ -450,3 +450,10 @@ TEST(Triangle3D, IntersectsLineSeg3D)
     EXPECT_FALSE(t.intersects_LineSeg3D({Point3D{1,2.5,0.5},Point3D{-1,2.5,0.5}}));
     EXPECT_FALSE(t.intersects_LineSeg3D({Point3D{1,0.5,2.5},Point3D{-1,0.5,2.5}}));
 }
+
+TEST(Triangle3D, IntersectsTriangle3D)
+{
+    Triangle3D t0{{1.23, -4.56, 7.89}, {4.5, 45.4, -4.56}, {-7.34, 5.345, 9.386}};
+
+    EXPECT_TRUE(t0.intersects_Triangle3D(t0));
+}

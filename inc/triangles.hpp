@@ -33,6 +33,12 @@ inline bool leq(scalar_t a, scalar_t b)
     return (a < b) || eq(a, b);
 }
 
+// return true if [left <= x && x <= right] 
+inline bool in_range(scalar_t left, scalar_t x, scalar_t right)
+{
+    return leq(left, x) || leq(x, right);
+}
+
 // if one of parameters of the constructor is NaN
 class NaNCtorParam : GeomException 
 {

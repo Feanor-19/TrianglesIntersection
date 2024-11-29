@@ -453,7 +453,39 @@ TEST(Triangle3D, IntersectsLineSeg3D)
 
 TEST(Triangle3D, IntersectsTriangle3D)
 {
-    Triangle3D t0{{1.23, -4.56, 7.89}, {4.5, 45.4, -4.56}, {-7.34, 5.345, 9.386}};
+    // https://www.desmos.com/3d/ehdtqku6u9
 
-    EXPECT_TRUE(t0.intersects_Triangle3D(t0));
+    // triangle with itself
+    EXPECT_TRUE(( Triangle3D{{1.23,-4.56,7.89}, {4.5,45.4,-4.56}, {-7.34,5.345,9.386}}
+     .intersects_Triangle3D({{1.23,-4.56,7.89}, {4.5,45.4,-4.56}, {-7.34,5.345,9.386}})));
+
+    // one point intersection, vertex & vertex, not complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0,1,0}, {0,1,1}, {0,2,1}})));
+
+    // one point intersection, vertex & vertex, complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0,1,0}, {1,1,0}, {0,2,0}})));
+
+    // one point intersection, non-vertex & vertex, complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0.5,0.5,0}, {1,1,0}, {0,2,0}})));
+
+    // one point intersection, non-vertex & vertex, not complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0.5,0.5,0}, {1,1,1}, {0,2,1}})));
+
+    // one point intersection, non-vertex & non-vertex, not complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0,0.5,-1}, {0,0.5,1}, {-1,2,1}})));
+
+    // lineseg on edge, not complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0,0.5,-1}, {0,0.5,1}, {0,2,1}})));
+
+    // lineseg on edge, complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0,0.5,0}, {0,2,0}, {-1,2,0}})));
+
+    
 }

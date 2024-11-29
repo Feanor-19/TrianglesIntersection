@@ -470,8 +470,6 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 
     return in_range(t00, t10, t01) || in_range(t00, t11, t01) 
         || in_range(t10, t00, t11) || in_range(t10, t01, t11);    
-
-    return false;
 }
 
 } // namespace Geom

@@ -1,20 +1,24 @@
 #include <iostream>
 #include <vector>
+#include <list>
 
 #include "triangles.hpp"
 
 namespace Driver
 {
+using index_t = size_t;
+
 void get_input(std::vector<double> &out);
 
-void parse_input(std::vector<std::pair<size_t, Geom::Point3D>> &points_out, 
-                 std::vector<std::pair<size_t, Geom::LineSeg3D>> &linesegs_out,
-                 std::vector<std::pair<size_t, Geom::Triangle3D>> &triangles_out,
+void parse_input(std::list<std::pair<index_t, Geom::Point3D>> &points_out, 
+                 std::list<std::pair<index_t, Geom::LineSeg3D>> &linesegs_out,
+                 std::list<std::pair<index_t, Geom::Triangle3D>> &triangles_out,
                  const std::vector<double> &inp);
 
-void print_intersections(std::vector<std::pair<size_t, Geom::Point3D>> &points, 
-                         std::vector<std::pair<size_t, Geom::LineSeg3D>> &linesegs,
-                         std::vector<std::pair<size_t, Geom::Triangle3D>> &triangles);
+std::vector<index_t> 
+get_inds_with_intscs(std::list<std::pair<index_t, Geom::Point3D>> &points, 
+                     std::list<std::pair<index_t, Geom::LineSeg3D>> &linesegs,
+                     std::list<std::pair<index_t, Geom::Triangle3D>> &triangles);
 };
 
 int main()
@@ -58,13 +62,13 @@ void Driver::get_input(std::vector<double> &out)
         throw std::runtime_error("Not full input");
 }
 
-void Driver::parse_input(std::vector<std::pair<size_t, Geom::Point3D>> &points_out, 
-                 std::vector<std::pair<size_t, Geom::LineSeg3D>> &linesegs_out,
-                 std::vector<std::pair<size_t, Geom::Triangle3D>> &triangles_out,
-                 const std::vector<double> &inp)
+void Driver::parse_input(std::list<std::pair<index_t, Geom::Point3D>> &points_out, 
+                         std::list<std::pair<index_t, Geom::LineSeg3D>> &linesegs_out,
+                         std::list<std::pair<index_t, Geom::Triangle3D>> &triangles_out,
+                         const std::vector<double> &inp)
 {
     using namespace Geom;
-    size_t ind = 0;
+    index_t ind = 0;
     for (auto it = inp.begin(); it+8 != inp.end(); it+=9)
     {
         Point3D p1{*it, *(it+1), *(it+2)}, p2{*(it+3), *(it+4), *(it+5)}, p3{*(it+6), *(it+7), *(it+8)};
@@ -90,17 +94,35 @@ void Driver::parse_input(std::vector<std::pair<size_t, Geom::Point3D>> &points_o
     }
 }
 
-void Driver::print_intersections(const std::vector<std::pair<size_t, Geom::Point3D>> &points, 
-                                 const std::vector<std::pair<size_t, Geom::LineSeg3D>> &linesegs,
-                                 const std::vector<std::pair<size_t, Geom::Triangle3D>> &triangles)
+std::vector<Driver::index_t> 
+Driver::get_inds_with_intscs(std::list<std::pair<index_t, Geom::Point3D>> &points, 
+                             std::list<std::pair<index_t, Geom::LineSeg3D>> &linesegs,
+                             std::list<std::pair<index_t, Geom::Triangle3D>> &triangles)
 {
     // TODO ЭТОТ УЖАС НЕ ПРОВЕРЯЕТ ПЕРЕСЕЧЕНИЯ ВНУТРИ МНОЖЕСТВА ОДНОГО ТИПА!!!
+    using namespace Geom;
 
-    for (auto [ind_point, point] : points)
+    std::vector<index_t> indcs;
+    indcs.reserve(points.size() + linesegs.size() + triangles.size());
+
+    //REVIEW - попытка сократить повторяющиеся маленькие кусочки кода ниже
+    auto push_and_erase = [&indcs]<typename List>(List list, typename List::iterator it)
     {
-        for (auto [ind_lineseg, lineseg] : linesegs)
+        indcs.push_back(it->first);
+        list.erase(it);
+    };
+    
+    for (auto it_out = points.begin(); it_out != points.end(); it_out++)
+    {
+        Point3D point = it_out->second;
+        for (auto it_in = std::next(it_out); it_in != points.end(); it_in++)
         {
-            if (lineseg.has_point(point))
+            if (it_in->second == it_out->second){ push_and_erase(points, it_in); goto found;}
+        }
+
+        for (auto it_lineseg = linesegs.begin(); it_lineseg != linesegs.end(); it_lineseg++)
+        {
+            if (it_lineseg->second.has_point(it_out->second))
                 std::cout << ind_point << " " << ind_lineseg;
         }
 
@@ -109,6 +131,11 @@ void Driver::print_intersections(const std::vector<std::pair<size_t, Geom::Point
             if (triangle.has_point(point))
                 std::cout << ind_point << " " << ind_triangle;
         }
+
+        continue;
+
+        found: 
+        indcs.push_back(it_out->first);
     }
 
     for (auto [ind_lineseg, lineseg] : linesegs)

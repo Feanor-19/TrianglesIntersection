@@ -259,18 +259,22 @@ TEST(LineSeg3D, VecConsistent)
     EXPECT_TRUE((ls2.vec() == Vector3D{4,5,6}));
 }
 
-TEST(LineSeg3D, IntersectWithComplanarLine)
+TEST(LineSeg3D, IntersectsLineSeg3D)
 {
-    Line3D l1{Vector3D{1,0,0}, Point3D{0,0,0}};
-    
-    LineSeg3D ls1{Point3D{2,0,0}, Point3D{3,0,0}};
-    EXPECT_FALSE(ls1.intersect_with_complanar_line(l1));
+    EXPECT_FALSE((LineSeg3D{Point3D{0,0,0},Point3D{1,0,0}}
+     .intersects_LineSeg3D({Point3D{0,0,1},Point3D{0,1,1}})));
 
-    LineSeg3D ls2{Point3D{0.5,0,0}, Point3D{2,0,0}};
-    EXPECT_FALSE(ls2.intersect_with_complanar_line(l1)); // because intersection isn't a point
+    EXPECT_TRUE((LineSeg3D{Point3D{0,0,0},Point3D{1,0,0}}
+    .intersects_LineSeg3D({Point3D{0,0,0},Point3D{0,1,0}})));
 
-    LineSeg3D ls3{Point3D{2,-1,0}, Point3D{2,1,0}};
-    EXPECT_TRUE((*ls3.intersect_with_complanar_line(l1) == Point3D{2,0,0}));
+    EXPECT_TRUE((LineSeg3D{Point3D{0,0,0},Point3D{1,0,0}}
+    .intersects_LineSeg3D({Point3D{0,1,0},Point3D{0,0,0}})));
+
+    EXPECT_TRUE((LineSeg3D{Point3D{0,0,0},Point3D{1,0,0}}
+    .intersects_LineSeg3D({Point3D{0.5,-1,0},Point3D{0,1,0}})));
+
+    EXPECT_TRUE((LineSeg3D{Point3D{0,0,0},Point3D{1,0,0}}
+    .intersects_LineSeg3D({Point3D{0,1,0},Point3D{0.5,-1,0}})));
 }
 
 TEST(Plane, CtorOk)

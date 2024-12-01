@@ -138,11 +138,12 @@ public:
     Vector3D vec() const;
 
     bool has_point(Point3D q) const;
+    bool intersects_LineSeg3D(const LineSeg3D &ls) const;
     
-    // finds point of intersection with line, which must be in the same plane as this segment
-    // if the intersection is not a point (or there is no intersection), std::nullopt is returned
-    // TODO CHECK IF IT IS ACTUALLY NEEDED
-    std::optional<Point3D> intersect_with_complanar_line(const Line3D &line) const;
+    // // finds point of intersection with line, which must be in the same plane as this segment
+    // // if the intersection is not a point (or there is no intersection), std::nullopt is returned
+    // // TODO CHECK IF IT IS ACTUALLY NEEDED
+    // std::optional<Point3D> intersect_with_complanar_line(const Line3D &line) const;
 };
 
 class Plane final

@@ -25,13 +25,19 @@ int main()
 {
     using namespace Geom;
 
-    // int i = 0;
+    int i = 0;
 
-    // Triangle3D t0{{0,0,0}, {1,0,0}, {0,1,0}};
-
-    // std::cout << std::boolalpha;
-    // std::cout << t0.intersects_Triangle3D({{0,1,0}, {0,1,1}, {0,2,1}}) << std::endl;
-
+    try
+    {    
+        std::cout << std::boolalpha;
+        std::cout << LineSeg3D{Point3D{0,0,0},Point3D{1,0,0}}
+    .intersects_LineSeg3D({Point3D{0,0,0},Point3D{0,1,0}}) << std::endl;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
 
     // first func reads input, gets std::vector<std::array<<std::array<double, 3>>>> ?? just nine doubles for
     // each triangle... or just "raw" std::vector of size N * 9
@@ -99,7 +105,6 @@ Driver::get_inds_with_intscs(std::list<std::pair<index_t, Geom::Point3D>> &point
                              std::list<std::pair<index_t, Geom::LineSeg3D>> &linesegs,
                              std::list<std::pair<index_t, Geom::Triangle3D>> &triangles)
 {
-    // TODO ЭТОТ УЖАС НЕ ПРОВЕРЯЕТ ПЕРЕСЕЧЕНИЯ ВНУТРИ МНОЖЕСТВА ОДНОГО ТИПА!!!
     using namespace Geom;
 
     std::vector<index_t> indcs;
@@ -117,19 +122,17 @@ Driver::get_inds_with_intscs(std::list<std::pair<index_t, Geom::Point3D>> &point
         Point3D point = it_out->second;
         for (auto it_in = std::next(it_out); it_in != points.end(); it_in++)
         {
-            if (it_in->second == it_out->second){ push_and_erase(points, it_in); goto found;}
+            if (it_in->second == it_out->second){push_and_erase(points, it_in); goto found;}
         }
 
         for (auto it_lineseg = linesegs.begin(); it_lineseg != linesegs.end(); it_lineseg++)
         {
-            if (it_lineseg->second.has_point(it_out->second))
-                std::cout << ind_point << " " << ind_lineseg;
+            if (it_lineseg->second.has_point(point)) {push_and_erase(linesegs, it_lineseg); goto found;}
         }
 
-        for (auto [ind_triangle, triangle] : triangles)
+        for (auto it_tr = triangles.begin(); it_tr != triangles.end(); it_tr++)
         {
-            if (triangle.has_point(point))
-                std::cout << ind_point << " " << ind_triangle;
+            if (it_tr->second.has_point(point)) {push_and_erase(triangles, it_tr); goto found;}
         }
 
         continue;
@@ -138,12 +141,17 @@ Driver::get_inds_with_intscs(std::list<std::pair<index_t, Geom::Point3D>> &point
         indcs.push_back(it_out->first);
     }
 
-    for (auto [ind_lineseg, lineseg] : linesegs)
-    {
-        for (auto [ind_triangle, triangle] : triangles)
-        {
-            if (triangle.intersects_LineSeg3D(lineseg))
-                std::cout << ind_lineseg << " " << ind_triangle;
-        }
-    }
+    // for (auto it_out = linesegs.begin(); it_out != linesegs.end(); it_out++)
+    // {
+    //     for (auto it_in = std::next(it_out); it_in != linesegs.end(); it_in++)
+    //     {
+    //         if (it_in->second.in)
+    //     }
+
+    //     for (auto [ind_triangle, triangle] : triangles)
+    //     {
+    //         if (triangle.intersects_LineSeg3D(lineseg))
+    //             std::cout << ind_lineseg << " " << ind_triangle;
+    //     }
+    // }
 }

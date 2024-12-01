@@ -75,6 +75,7 @@ public:
     scalar_t z() const {return z_;};
 
     Vector3D& operator+=(const Vector3D& rhs);
+    Vector3D& operator-=(const Vector3D& rhs);
     Vector3D& operator*=(scalar_t rhs);
     bool operator==(const Vector3D& rhs) const;
     Vector3D operator-() const;

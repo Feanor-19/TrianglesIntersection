@@ -39,6 +39,12 @@ Vector3D &Vector3D::operator+=(const Vector3D &rhs)
     return *this;
 }
 
+Vector3D &Vector3D::operator-=(const Vector3D &rhs)
+{
+    x_ -= rhs.x_; y_ -= rhs.y_; z_ -= rhs.z_;
+    return *this;
+}
+
 Vector3D &Vector3D::operator*=(scalar_t rhs)
 {
     x_ *= rhs; y_ *= rhs; z_ *= rhs;
@@ -134,6 +140,7 @@ std::optional<Line3D> intersect_planes(Plane p1, Plane p2)
 
     scalar_t n1n2dot = dot_prod(n1, n2);
     scalar_t n1n2dotsqr = n1n2dot * n1n2dot;
+    assert(!eq(n1n2dotsqr, 1));
     scalar_t a = (s2 * n1n2dot - s1) / (n1n2dotsqr - 1);
     scalar_t b = (s1 * n1n2dot - s2) / (n1n2dotsqr - 1);
 
@@ -268,7 +275,7 @@ bool LineSeg3D::intersects_LineSeg3D(const LineSeg3D &ls) const
     if (trivial_case)
         return true;
 
-    Vector3D n = cross_prod(vec_, ls.vec_).norm_vec();
+    Vector3D n = cross_prod(vec_.norm_vec(), ls.vec_.norm_vec());
     if (n.is_zero())
         return trivial_case;
 
@@ -281,20 +288,6 @@ bool LineSeg3D::intersects_LineSeg3D(const LineSeg3D &ls) const
 
     return has_point(p_intsc);
 }
-
-// std::optional<Point3D> LineSeg3D::intersect_with_complanar_line(const Line3D &line) const
-// {
-//     assert(eq(scalar_triple_prod(vec_, line.dir(), line.p() - p1_), 0));
-
-//     if (cross_prod(vec_, line.dir()).is_zero())
-//         return std::nullopt;
-
-//     Vector3D a = line.p() - p1_;
-//     Vector3D norm_lineseg_vec = vec_.norm_vec();
-//     Vector3D b = -a + dot_prod(a, norm_lineseg_vec) * norm_lineseg_vec;
-//     scalar_t b_len = b.len();
-//     return line.p() + line.dir() * ((b_len * b_len) / dot_prod(b, line.dir()));
-// }
 
 Triangle3D::Triangle3D(Point3D p1, Point3D p2, Point3D p3) : 
     p1_(p1), p2_(p2), p3_(p3), plane_(Vector3D{1,0,0}, Point3D{0,0,0})
@@ -450,13 +443,15 @@ inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
-    const Triangle3D &t0 = *this;
-    const Triangle3D &t1 = triangle;
+    Triangle3D t0 = *this;
+    Triangle3D t1 = triangle;
 
-    // TODO
-    // affine moving?
-
-    // ---
+    //centering
+    scalar_t div = 1 / 6;
+    Vector3D r_c = t0.p1_ * div + t0.p2_ * div + t0.p3_ * div + 
+                   t1.p1_ * div + t1.p2_ * div + t1.p3_ * div;
+    t0.p1_ = t0.p1_ - r_c; t0.p2_ = t0.p2_ - r_c; t0.p3_ = t0.p3_ - r_c;
+    t1.p1_ = t1.p1_ - r_c; t1.p2_ = t1.p2_ - r_c; t1.p3_ = t1.p3_ - r_c;
 
     const Point3D &p01 = t0.p1_; const Point3D &p02 = t0.p2_; const Point3D &p03 = t0.p3_;
     const Point3D &p11 = t1.p1_; const Point3D &p12 = t1.p2_; const Point3D &p13 = t1.p3_;

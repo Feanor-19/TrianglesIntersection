@@ -25,8 +25,8 @@ conan profile detect
 ### Клонирование репозитория
 
 ```
-git clone ***
-cd Triangles
+git clone https://github.com/Feanor-19/TrianglesIntersection
+cd TrianglesIntersection
 ```
 
 ### Подготовка зависимостей
@@ -45,7 +45,14 @@ conan install . --output-folder=build/Debug --build=missing --settings=build_typ
 
 Release:
 ```
-cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+cd build/Release
+cmake ../.. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+cmake --build .
+```
+
+Debug:
+```
+cd build/Debug
+cmake ../.. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug
 cmake --build .
 ```

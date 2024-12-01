@@ -10,7 +10,7 @@ SET(SRC_DIR src)
 add_library(TrianglesLib ${SRC_DIR}/triangles.cpp)
 target_include_directories(TrianglesLib PUBLIC inc)
 
-add_executable(Driver ${SRC_DIR}/main.cpp)
+add_executable(Driver ${SRC_DIR}/main.cpp ${SRC_DIR}/driver.cpp)
 target_include_directories(Driver PUBLIC inc)
 target_link_libraries(Driver TrianglesLib)
 

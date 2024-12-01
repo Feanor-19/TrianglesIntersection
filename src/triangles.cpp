@@ -415,9 +415,9 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line,
 }
 
 // helper for 'intersects_Triangle3D'
-// TODO вставить ссылку на книгу и параграф (7.7.2)
 inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 {
+    // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (7.7.2)
     Point3D p01 = t0.p1(), p02 = t0.p2(), p03 = t0.p3(), p11 = t1.p1(), p12 = t1.p2(), p13 = t1.p3();
     Vector3D n0 = t0.plane().n_vec(), n1 = t1.plane().n_vec();
 
@@ -443,6 +443,7 @@ inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
+    // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (11.5.4)
     Triangle3D t0 = *this;
     Triangle3D t1 = triangle;
 
@@ -460,7 +461,6 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
     scalar_t s_dist12 = plane_.s_dist_to_point(p12);
     scalar_t s_dist13 = plane_.s_dist_to_point(p13);
 
-    // TODO нулевое расстояние не должен попадать под это?
     if (are_all_the_same_sign(s_dist11, s_dist12, s_dist13))
         return false;
 

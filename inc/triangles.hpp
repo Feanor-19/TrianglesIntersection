@@ -60,7 +60,6 @@ public:
     bool operator==(const Point3D& rhs) const;
 };
 
-// TODO check if "final" is needed
 class Vector3D final
 {
 private:

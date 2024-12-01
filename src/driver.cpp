@@ -2,11 +2,11 @@
 
 #include <iostream>
 
-void Driver::get_input(std::vector<double> &out)
+void Driver::get_input(std::vector<double> &out, std::istream& stream)
 {
     int N_inp = 0;
-    std::cin >> N_inp;
-    if (!std::cin.good() || N_inp <= 0)
+    stream >> N_inp;
+    if (!stream.good() || N_inp <= 0)
         throw std::runtime_error("Wrong input");
 
     int N_points = N_inp * 9;
@@ -15,10 +15,10 @@ void Driver::get_input(std::vector<double> &out)
     out.reserve(N_points);
 
     double input = 0;
-    while (N_points-- && std::cin >> input)
+    while (N_points-- && stream >> input)
         out.push_back(input);
 
-    if (N_points > 0 || !std::cin)
+    if (N_points > 0 || !stream)
         throw std::runtime_error("Not full input");
 }
 

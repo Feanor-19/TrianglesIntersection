@@ -26,7 +26,7 @@ int main()
         using namespace Driver;
 
         std::vector<double> inp;
-        get_input(inp);
+        get_input(inp, std::cin);
 
         ListPoint3D points;
         ListLineSeg3D linesegs;

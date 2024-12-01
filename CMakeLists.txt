@@ -14,6 +14,15 @@ add_executable(Driver ${SRC_DIR}/main.cpp ${SRC_DIR}/driver.cpp)
 target_include_directories(Driver PUBLIC inc)
 target_link_libraries(Driver TrianglesLib)
 
+# Benchmarking using google benchmark
+
+find_package(benchmark REQUIRED)
+
+add_executable(benchmark ${SRC_DIR}/benchmark.cpp ${SRC_DIR}/driver.cpp)
+target_include_directories(benchmark PUBLIC inc)
+target_link_libraries(benchmark benchmark::benchmark)
+target_link_libraries(benchmark TrianglesLib)
+
 # E2E tests
 enable_testing()
 

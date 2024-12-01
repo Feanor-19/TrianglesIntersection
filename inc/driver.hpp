@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <list>
+#include <iostream>
 
 #include "triangles.hpp"
 
@@ -9,7 +10,7 @@ namespace Driver
 {
 using index_t = size_t;
 
-void get_input(std::vector<double> &out);
+void get_input(std::vector<double> &out, std::istream& stream);
 
 using ListPoint3D = std::list<std::pair<index_t, Geom::Point3D>>;
 using ListLineSeg3D = std::list<std::pair<index_t, Geom::LineSeg3D>>;

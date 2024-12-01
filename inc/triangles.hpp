@@ -12,7 +12,7 @@ using scalar_t = double;
 
 const scalar_t DBL_PRECISION = 1e-10;
 
-class GeomException : std::logic_error 
+class GeomException : public std::logic_error 
 {
 public:
     GeomException(const char *err_msg) : std::logic_error(err_msg) {}
@@ -40,7 +40,7 @@ inline bool in_range(scalar_t left, scalar_t x, scalar_t right)
 }
 
 // if one of parameters of the constructor is NaN
-class NaNCtorParam : GeomException 
+class NaNCtorParam : public  GeomException 
 {
 public:
     NaNCtorParam() : GeomException("At least one of parametres passed to constructor is a NaN") {}
@@ -125,7 +125,7 @@ private:
     Point3D p2_;
     Vector3D vec_; //must be (p2_- p1_)
 public:
-    class DegeneratedLineSeg : GeomException
+    class DegeneratedLineSeg : public GeomException
     {
     public:
         DegeneratedLineSeg() : GeomException("Attempt to construct a degenerated line segment") {}
@@ -140,11 +140,6 @@ public:
 
     bool has_point(Point3D q) const;
     bool intersects_LineSeg3D(const LineSeg3D &ls) const;
-    
-    // // finds point of intersection with line, which must be in the same plane as this segment
-    // // if the intersection is not a point (or there is no intersection), std::nullopt is returned
-    // // TODO CHECK IF IT IS ACTUALLY NEEDED
-    // std::optional<Point3D> intersect_with_complanar_line(const Line3D &line) const;
 };
 
 class Plane final
@@ -153,7 +148,7 @@ private:
     Vector3D n_vec_; // always normalized
     Point3D p_;
 public:
-    class DegeneratedPlane : GeomException
+    class DegeneratedPlane : public GeomException
     {
     public:
         DegeneratedPlane() : GeomException("Attempt to construct a degenerated plane") {}
@@ -184,7 +179,7 @@ private:
     Plane plane_; // must be consistent with other private fields:
                   // plane_.n_vec must be [p1p2, p1p3]
 public:
-    class DegeneratedTriangle : GeomException
+    class DegeneratedTriangle : public GeomException
     {
     public:
         DegeneratedTriangle() : GeomException("Attempt to construct a degenerated plane") {}    

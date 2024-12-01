@@ -14,6 +14,22 @@ add_executable(Driver ${SRC_DIR}/main.cpp ${SRC_DIR}/driver.cpp)
 target_include_directories(Driver PUBLIC inc)
 target_link_libraries(Driver TrianglesLib)
 
+# E2E tests
+enable_testing()
+
+SET(E2E_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/E2E_tests)
+
+file(GLOB E2E_ALL_TESTS_FILES "${E2E_TESTS_DIR}/*.in")
+
+foreach(file ${E2E_ALL_TESTS_FILES})
+    cmake_path(GET file STEM test_stem)
+    cmake_path(GET file PARENT_PATH test_parent_path)
+    SET(test_name E2E_${test_stem})
+    add_test(NAME ${test_name}
+        COMMAND bash -c "${CMAKE_SOURCE_DIR}/scripts/runE2Etest.sh $<TARGET_FILE:Driver> ${test_parent_path}/${test_stem}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
+
 # Unit tests with GTest
 find_package(GTest REQUIRED)
 

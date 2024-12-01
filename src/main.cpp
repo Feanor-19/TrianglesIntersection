@@ -41,6 +41,10 @@ int main()
         }
         std::cout << std::endl;
     }
+    catch(const std::logic_error& e)
+    {
+        std::cerr << "LOGIC ERROR: " << e.what() << std::endl;
+    }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';

@@ -4,19 +4,21 @@
 
 void Driver::get_input(std::vector<double> &out)
 {
-    int N = 0;
-    std::cin >> N;
-    if (!std::cin.good() || N <= 0 || N % 9 != 0)
+    int N_inp = 0;
+    std::cin >> N_inp;
+    if (!std::cin.good() || N_inp <= 0)
         throw std::runtime_error("Wrong input");
 
+    int N_points = N_inp * 9;
+
     out.clear();
-    out.reserve(N);
+    out.reserve(N_points);
 
     double input = 0;
-    while (N-- && std::cin >> input)
+    while (N_points-- && std::cin >> input)
         out.push_back(input);
 
-    if (N > 0 || !std::cin)
+    if (N_points > 0 || !std::cin)
         throw std::runtime_error("Not full input");
 }
 
@@ -25,7 +27,7 @@ void Driver::parse_input(ListPoint3D &points_out, ListLineSeg3D &linesegs_out,
 {
     using namespace Geom;
     index_t ind = 0;
-    for (auto it = inp.begin(); it+8 != inp.end(); it+=9)
+    for (auto it = inp.begin(); it != inp.end(); it+=9)
     {
         Point3D p1{*it, *(it+1), *(it+2)}, p2{*(it+3), *(it+4), *(it+5)}, p3{*(it+6), *(it+7), *(it+8)};
         int eq_cnt = (p1 == p2) + (p2 == p3) + (p1 == p3);
@@ -46,7 +48,20 @@ void Driver::parse_input(ListPoint3D &points_out, ListLineSeg3D &linesegs_out,
             continue;
         }
 
-        triangles_out.push_back(std::make_pair(ind++, Triangle3D{p1, p2, p3}));
+        Vector3D v12 = p2 - p1;
+        Vector3D v13 = p3 - p1;
+        if (!cross_prod(v12, v13).is_zero())
+            triangles_out.push_back(std::make_pair(ind++, Triangle3D{p1, p2, p3}));
+        else
+        {
+            scalar_t dot = dot_prod(v12, v13);
+            if (leq(dot, 0))
+                linesegs_out.push_back(std::make_pair(ind++, LineSeg3D{p3, p2}));
+            else if (leq(dot, v12.len()*v12.len()))
+                linesegs_out.push_back(std::make_pair(ind++, LineSeg3D{p1, p2}));
+            else 
+                linesegs_out.push_back(std::make_pair(ind++, LineSeg3D{p1, p3}));
+        }
     }
 }
 

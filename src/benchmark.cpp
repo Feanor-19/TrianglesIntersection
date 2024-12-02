@@ -47,8 +47,10 @@ void BM(benchmark::State &state, Args&&... args)
             std::cout << ind << " ";
         }
         std::cout << std::endl;
+
+        file.clear();
+        file.seekg(0, std::ios::beg);
     }
-    
 }
 
 BENCHMARK_CAPTURE(BM, full_rand_10000, std::string("benchmark_data/full_rand_10000.dat"));

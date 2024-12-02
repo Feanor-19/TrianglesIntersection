@@ -232,14 +232,14 @@ bool Line3D::has_point(Point3D q) const
 }
 
 LineSeg3D::LineSeg3D(Point3D p1, Point3D p2) :
-    p1_(p1), p2_(p2), vec_(p1, p2)
+    p1_(p1), p2_(p2), vec_(p1, p2), bound_box_({p1, p2})
 {
     if (eq(vec_.len(), 0))
         throw DegeneratedLineSeg();
 }
 
 LineSeg3D::LineSeg3D(Point3D p, Vector3D v) :
-    p1_(p), p2_(p + v), vec_(v)
+    p1_(p), p2_(p + v), vec_(v), bound_box_({p, p + v})
 {
     if (eq(vec_.len(), 0))
         throw DegeneratedLineSeg();
@@ -258,6 +258,11 @@ Point3D LineSeg3D::p2() const
 Vector3D LineSeg3D::vec() const
 {
     return vec_;
+}
+
+BoundingBox LineSeg3D::bound_box() const
+{
+    return bound_box_;
 }
 
 bool LineSeg3D::has_point(Point3D q) const
@@ -290,7 +295,7 @@ bool LineSeg3D::intersects_LineSeg3D(const LineSeg3D &ls) const
 }
 
 Triangle3D::Triangle3D(Point3D p1, Point3D p2, Point3D p3) : 
-    p1_(p1), p2_(p2), p3_(p3), plane_(Vector3D{1,0,0}, Point3D{0,0,0})
+    p1_(p1), p2_(p2), p3_(p3), plane_(Vector3D{1,0,0}, Point3D{0,0,0}), bound_box_({p1, p2, p3})
 {
     if (p1_ == p2_ || p2_ == p3_ || p1_ == p3_)
         throw DegeneratedTriangle();
@@ -318,6 +323,11 @@ Plane Triangle3D::plane() const
     return plane_;
 }
 
+BoundingBox Triangle3D::bound_box() const
+{
+    return bound_box_;
+}
+
 bool Triangle3D::has_point(const Point3D &p) const
 {
     if (!plane_.has_point(p))
@@ -339,6 +349,9 @@ bool Triangle3D::has_point(const Point3D &p) const
 
 bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
 {
+    if (!bound_box_.intersects(lineseg.bound_box()))
+        return false;
+
     // check if any of the endpoints of lineseg belong to the triangle
     if (has_point(lineseg.p1()) || has_point(lineseg.p2()))
         return true;
@@ -443,6 +456,9 @@ inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
+    if (!bound_box_.intersects(triangle.bound_box_))
+        return false;
+
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (11.5.4)
     Triangle3D t0 = *this;
     Triangle3D t1 = triangle;
@@ -451,11 +467,9 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
     scalar_t div = 1 / 6;
     Vector3D r_c = t0.p1_ * div + t0.p2_ * div + t0.p3_ * div + 
                    t1.p1_ * div + t1.p2_ * div + t1.p3_ * div;
-    t0.p1_ = t0.p1_ - r_c; t0.p2_ = t0.p2_ - r_c; t0.p3_ = t0.p3_ - r_c;
-    t1.p1_ = t1.p1_ - r_c; t1.p2_ = t1.p2_ - r_c; t1.p3_ = t1.p3_ - r_c;
 
-    const Point3D &p01 = t0.p1_; const Point3D &p02 = t0.p2_; const Point3D &p03 = t0.p3_;
-    const Point3D &p11 = t1.p1_; const Point3D &p12 = t1.p2_; const Point3D &p13 = t1.p3_;
+    const Point3D &p01 = t0.p1_ - r_c; const Point3D &p02 = t0.p2_ - r_c; const Point3D &p03 = t0.p3_ - r_c;
+    const Point3D &p11 = t1.p1_ - r_c; const Point3D &p12 = t1.p2_ - r_c; const Point3D &p13 = t1.p3_ - r_c;
 
     scalar_t s_dist11 = plane_.s_dist_to_point(p11);
     scalar_t s_dist12 = plane_.s_dist_to_point(p12);
@@ -490,11 +504,21 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
         || in_range(t10, t00, t11) || in_range(t10, t01, t11);    
 }
 
-BoundingBox::BoundingBox(scalar_t min_x, scalar_t min_y, scalar_t min_z, 
-                         scalar_t max_x, scalar_t max_y, scalar_t max_z)
-    : min_x_(min_x), min_y_(min_y), min_z_(min_z), max_x_(max_x), max_y_(max_y), max_z_(max_z)
+BoundingBox::BoundingBox(std::initializer_list<Point3D> points):
+    min_x_(points.begin()->x()), min_y_(points.begin()->y()), min_z_(points.begin()->z()),
+    max_x_(min_x_), max_y_(min_y_), max_z_(min_z_)
 {
-    assert(geq(max_x_, min_x_) && geq(max_y_, min_y_) && geq(max_z_, min_z_));
+    for (auto it = std::next(points.begin()); it != points.end(); it++)
+    {
+        if      (it->x() < min_x_) min_x_ = it->x();
+        else if (it->x() > max_x_) max_x_ = it->x();
+
+        if      (it->y() < min_y_) min_y_ = it->y();
+        else if (it->y() > max_y_) max_y_ = it->y();
+
+        if      (it->z() < min_z_) min_z_ = it->z();
+        else if (it->z() > max_z_) max_z_ = it->z();        
+    }
 }
 
 bool BoundingBox::intersects(const BoundingBox &other) const

@@ -490,46 +490,35 @@ TEST(Triangle3D, IntersectsTriangle3D)
     // lineseg on edge, complanar
     EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
      .intersects_Triangle3D({{0,0.5,0}, {0,2,0}, {-1,2,0}})));
-
-    
-}
-
-TEST(BoundingBox, CtorFail)
-{
-    EXPECT_DEBUG_DEATH((BoundingBox{1, 2, 3, -4, 5, 6}), ".*");
-
-    EXPECT_DEBUG_DEATH((BoundingBox{1, 2, 3, 4, -5, 6}), ".*");
-
-    EXPECT_DEBUG_DEATH((BoundingBox{1, 2, 3, 4, 5, -6}), ".*");
 }
 
 TEST(BoundingBox, Intersects)
 {
     // https://www.desmos.com/3d/taxvrz4rog
 
-    EXPECT_TRUE((BoundingBox{1, 2, 3, 4, 5, 6}
-     .intersects(BoundingBox{1, 2, 3, 4, 5, 6})));
+    EXPECT_TRUE((BoundingBox{{1, 2, 3}, {4, 5, 6}}
+     .intersects(BoundingBox{{1, 2, 3}, {4, 5, 6}})));
 
     // one dot intersection (extreme)
-    EXPECT_TRUE((BoundingBox{0, 0, 0, 1, 1, 1}
-     .intersects(BoundingBox{-1, -1, -1, 0, 0, 0})));
+    EXPECT_TRUE((BoundingBox{{0, 0, 0}, {1, 1, 1}}
+     .intersects(BoundingBox{{0, 0, 0}, {-1, -1, -1}})));
 
     // one dot intersection (non-extreme)
-    EXPECT_TRUE((BoundingBox{0, 0, 0, 1, 1, 1}
-     .intersects(BoundingBox{1, -1, 1, 2, 0, 2})));
+    EXPECT_TRUE((BoundingBox{{0, 0, 0}, {1, 1, 1}}
+     .intersects(BoundingBox{{1, -1, 1}, {2, 0, 2}})));
      
     // edge intersection (non-extreme)
-    EXPECT_TRUE((BoundingBox{0, 0, 0, 1, 1, 1}
-     .intersects(BoundingBox{1, -1, -1, 2, 0, 2})));
+    EXPECT_TRUE((BoundingBox{{0, 0, 0}, {1, 1, 1}}
+     .intersects(BoundingBox{{2, 0, 2}, {1, -1, -1}})));
 
     // one inside another
-    EXPECT_TRUE((BoundingBox{0, 0, 0, 1, 1, 1}
-     .intersects(BoundingBox{-1, -1, -1, 2, 2, 2})));
+    EXPECT_TRUE((BoundingBox{{0, 0, 0}, {1, 1, 1}}
+     .intersects(BoundingBox{{-1, -1, -1}, {2, 2, 2}})));
 
     // face intersection
-    EXPECT_TRUE((BoundingBox{0, 0, 0, 1, 1, 1}
-     .intersects(BoundingBox{-1, -1, -1, 2, 0, 2})));
+    EXPECT_TRUE((BoundingBox{{0, 0, 0}, {1, 1, 1}}
+     .intersects(BoundingBox{{2, 0, 2}, {-1, -1, -1}})));
 
-    EXPECT_TRUE((BoundingBox{0, 0, 0, 1, 1, 1}
-     .intersects(BoundingBox{-1, 0.5, -1, 2, 0.7, 2})));
+    EXPECT_TRUE((BoundingBox{{0, 0, 0}, {1, 1, 1}}
+     .intersects(BoundingBox{{-1, 0.5, -1}, {2, 0.7, 2}})));
 }

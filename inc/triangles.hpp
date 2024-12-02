@@ -46,20 +46,6 @@ public:
     NaNCtorParam() : GeomException("At least one of parametres passed to constructor is a NaN") {}
 };
 
-// axis-aligned bounding box
-class BoundingBox final 
-{
-private:
-    const scalar_t min_x_, min_y_, min_z_;
-    const scalar_t max_x_, max_y_, max_z_;
-public:
-    // must be: max_i >= min_i for i in [x, y, z]
-    BoundingBox(scalar_t min_x, scalar_t min_y, scalar_t min_z,
-                scalar_t max_x, scalar_t max_y, scalar_t max_z);
-
-    bool intersects(const BoundingBox& other) const;
-};
-
 class Point3D final
 {
 private:
@@ -72,6 +58,18 @@ public:
     scalar_t z() const {return z_;};
 
     bool operator==(const Point3D& rhs) const;
+};
+
+// axis-aligned bounding box
+class BoundingBox final 
+{
+private:
+    scalar_t min_x_, min_y_, min_z_;
+    scalar_t max_x_, max_y_, max_z_;
+public:
+    BoundingBox(std::initializer_list<Point3D> points);
+
+    bool intersects(const BoundingBox& other) const;
 };
 
 class Vector3D final
@@ -137,6 +135,7 @@ private:
     Point3D p1_;
     Point3D p2_;
     Vector3D vec_; //must be (p2_- p1_)
+    BoundingBox bound_box_;
 public:
     class DegeneratedLineSeg : public GeomException
     {
@@ -150,6 +149,7 @@ public:
     Point3D p1() const;
     Point3D p2() const;
     Vector3D vec() const;
+    BoundingBox bound_box() const;
 
     bool has_point(Point3D q) const;
     bool intersects_LineSeg3D(const LineSeg3D &ls) const;
@@ -191,6 +191,7 @@ private:
     Point3D p3_; 
     Plane plane_; // must be consistent with other private fields:
                   // plane_.n_vec must be [p1p2, p1p3]
+    BoundingBox bound_box_;
 public:
     class DegeneratedTriangle : public GeomException
     {
@@ -204,6 +205,7 @@ public:
     Point3D p2() const;
     Point3D p3() const;
     Plane plane() const;
+    BoundingBox bound_box() const;
 
     bool has_point(const Point3D& p) const;
 

@@ -490,4 +490,25 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
         || in_range(t10, t00, t11) || in_range(t10, t01, t11);    
 }
 
+BoundingBox::BoundingBox(scalar_t min_x, scalar_t min_y, scalar_t min_z, 
+                         scalar_t max_x, scalar_t max_y, scalar_t max_z)
+    : min_x_(min_x), min_y_(min_y), min_z_(min_z), max_x_(max_x), max_y_(max_y), max_z_(max_z)
+{
+    assert(geq(max_x_, min_x_) && geq(max_y_, min_y_) && geq(max_z_, min_z_));
+}
+
+bool BoundingBox::intersects(const BoundingBox &other) const
+{
+    if (!leq(min_x_, other.max_x_) || !leq(other.min_x_, max_x_) )
+        return false;
+
+    if (!leq(min_y_, other.max_y_) || !leq(other.min_y_, max_y_) )
+        return false;
+
+    if (!leq(min_z_, other.max_z_) || !leq(other.min_z_, max_z_) )
+        return false;
+
+    return true;
+}
+
 } // namespace Geom

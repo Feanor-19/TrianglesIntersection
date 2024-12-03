@@ -427,28 +427,27 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line,
     return {t0, t1};
 }
 
-// helper for 'intersects_Triangle3D'
-inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
+bool Triangle3D::intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1) const
 {
+    assert(t0.plane_ == t1.plane_);
+
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (7.7.2)
-    Point3D p01 = t0.p1(), p02 = t0.p2(), p03 = t0.p3(), p11 = t1.p1(), p12 = t1.p2(), p13 = t1.p3();
-    Vector3D n0 = t0.plane().n_vec(), n1 = t1.plane().n_vec();
 
     //REVIEW - Попытка уменьшить количество _маленького_ одинакового кода, но не используя макросы
     auto check_edge = [](const Point3D &p_i, const Point3D &p_i_plus_1, const Vector3D &n, const Triangle3D &other_t)
     {
         Vector3D ax_dir = cross_prod(p_i_plus_1 - p_i, n);
-        return leq(dot_prod(ax_dir, other_t.p1() - p_i), 0) > 0 
-            && leq(dot_prod(ax_dir, other_t.p2() - p_i), 0) > 0 
-            && leq(dot_prod(ax_dir, other_t.p3() - p_i), 0) > 0;
+        return leq(dot_prod(ax_dir, other_t.p1_ - p_i), 0) > 0 
+            && leq(dot_prod(ax_dir, other_t.p2_ - p_i), 0) > 0 
+            && leq(dot_prod(ax_dir, other_t.p3_ - p_i), 0) > 0;
     };
 
     auto check_triangle = [check_edge](const Triangle3D &this_t, const Triangle3D &other_t)
     {
         Vector3D this_n = this_t.plane().n_vec();
-        return check_edge(this_t.p1(), this_t.p2(), this_n, other_t) 
-            || check_edge(this_t.p2(), this_t.p3(), this_n, other_t)
-            || check_edge(this_t.p3(), this_t.p1(), this_n, other_t);
+        return check_edge(this_t.p1_, this_t.p2_, this_n, other_t) 
+            || check_edge(this_t.p2_, this_t.p3_, this_n, other_t)
+            || check_edge(this_t.p3_, this_t.p1_, this_n, other_t);
     };
 
     return check_triangle(t0, t1) || check_triangle(t1, t0);
@@ -457,48 +456,46 @@ inline bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
     if (!bound_box_.intersects(triangle.bound_box_))
-        return false;
+         return false;
 
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (11.5.4)
     Triangle3D t0 = *this;
     Triangle3D t1 = triangle;
 
     //centering
-    scalar_t div = 1 / 6;
+    scalar_t div = 1. / 6.;
     Vector3D r_c = t0.p1_ * div + t0.p2_ * div + t0.p3_ * div + 
                    t1.p1_ * div + t1.p2_ * div + t1.p3_ * div;
 
-    const Point3D &p01 = t0.p1_ - r_c; const Point3D &p02 = t0.p2_ - r_c; const Point3D &p03 = t0.p3_ - r_c;
-    const Point3D &p11 = t1.p1_ - r_c; const Point3D &p12 = t1.p2_ - r_c; const Point3D &p13 = t1.p3_ - r_c;
+    t0 = {t0.p1_ - r_c, t0.p2_ - r_c, t0.p3_ - r_c};
+    t1 = {t1.p1_ - r_c, t1.p2_ - r_c, t1.p3_ - r_c};
 
-    scalar_t s_dist11 = plane_.s_dist_to_point(p11);
-    scalar_t s_dist12 = plane_.s_dist_to_point(p12);
-    scalar_t s_dist13 = plane_.s_dist_to_point(p13);
+    scalar_t s_dist11 = t0.plane_.s_dist_to_point(t1.p1_);
+    scalar_t s_dist12 = t0.plane_.s_dist_to_point(t1.p2_);
+    scalar_t s_dist13 = t0.plane_.s_dist_to_point(t1.p3_);
 
     if (are_all_the_same_sign(s_dist11, s_dist12, s_dist13))
         return false;
 
-    const Plane &t0_plane = plane_; 
-    const Plane &t1_plane = t1.plane_;
-    if (plane_.is_parallel_to(t1_plane))
+    if (t0.plane_.is_parallel_to(t1.plane_))
     {
-        if (!(plane_ == t1_plane))
+        if (!(t0.plane_ == t1.plane_))
             return false;
 
         return intersect_Triangle2D(t0, t1);
     } 
 
-    scalar_t s_dist01 = t1_plane.s_dist_to_point(p01);
-    scalar_t s_dist02 = t1_plane.s_dist_to_point(p02);
-    scalar_t s_dist03 = t1_plane.s_dist_to_point(p03);
+    scalar_t s_dist01 = t1.plane_.s_dist_to_point(t0.p1_);
+    scalar_t s_dist02 = t1.plane_.s_dist_to_point(t0.p2_);
+    scalar_t s_dist03 = t1.plane_.s_dist_to_point(t0.p3_);
 
     if (are_all_the_same_sign(s_dist01, s_dist02, s_dist03))
         return false;
 
-    Line3D intsc_line = *intersect_planes(t0_plane, t1_plane);
+    Line3D intsc_line = *intersect_planes(t0.plane_, t1.plane_);
 
-    auto [t00, t01] = compute_interval(intsc_line, p01, p02, p03, s_dist01, s_dist02, s_dist03);
-    auto [t10, t11] = compute_interval(intsc_line, p11, p12, p13, s_dist11, s_dist12, s_dist13);
+    auto [t00, t01] = compute_interval(intsc_line, t0.p1_, t0.p2_, t0.p3_, s_dist01, s_dist02, s_dist03);
+    auto [t10, t11] = compute_interval(intsc_line, t1.p1_, t1.p2_, t1.p3_, s_dist11, s_dist12, s_dist13);
 
     return in_range(t00, t10, t01) || in_range(t00, t11, t01) 
         || in_range(t10, t00, t11) || in_range(t10, t01, t11);    

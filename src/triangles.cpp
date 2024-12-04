@@ -382,8 +382,10 @@ using PairPointSc = std::pair<Point3D, scalar_t>;
 using Tuple3 = std::tuple<PairPointSc,PairPointSc,PairPointSc>;
 
 // assumes that two of the given numbers has one sign, and the other one - another sign,
-// and returns the one with different from other two's sign 
+// (all non-zero) and returns the one with different from the other two's sign,
 inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
+    assert(!eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0));
+    
     if (a.second > b.second)
         std::swap(a, b);
     if (a.second > c.second)
@@ -411,16 +413,31 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line,
                                                       Point3D p1_, Point3D p2_, Point3D p3_,
                                                       scalar_t s_dist1_, scalar_t s_dist2_, scalar_t s_dist3_)
 {
+    assert(!(eq(s_dist1_, 0) && eq(s_dist2_, 0) && eq(s_dist3_, 0)));
+    
     Point3D l_p = intsc_line.p();
     Vector3D l_d = intsc_line.dir(); 
+    auto proj_on_line = [l_p, l_d](const Point3D &p) {return dot_prod(p-l_p,l_d);};
+
+    bool s_dist1_0 = eq(s_dist1_, 0), s_dist2_0 = eq(s_dist2_, 0), s_dist3_0 = eq(s_dist3_, 0); 
+
+    // if two of the given points are on the line
+    if (s_dist1_0 && s_dist2_0) return {proj_on_line(p1_),proj_on_line(p2_)};
+    if (s_dist2_0 && s_dist3_0) return {proj_on_line(p2_),proj_on_line(p3_)};
+    if (s_dist1_0 && s_dist3_0) return {proj_on_line(p1_),proj_on_line(p3_)};
+
+    // if exaclty one of the points is on the line
+    if (s_dist1_0) return {proj_on_line(p1_),proj_on_line(p1_)};
+    if (s_dist2_0) return {proj_on_line(p2_),proj_on_line(p2_)};
+    if (s_dist3_0) return {proj_on_line(p3_),proj_on_line(p3_)};
 
     auto [pps_df, pps0, pps1] = PullDiffSign::pull_diff_sign({p1_, s_dist1_}, {p2_, s_dist2_}, {p3_, s_dist3_});
     auto [p_df, s_dist_df] = pps_df; auto [p0, s_dist0] = pps0; auto [p1, s_dist1] = pps1;
 
     // projecting points on the line
-    scalar_t pr_p0   = dot_prod(l_d, p0   - l_p);
-    scalar_t pr_p1   = dot_prod(l_d, p1   - l_p);
-    scalar_t pr_p_df = dot_prod(l_d, p_df - l_p);
+    scalar_t pr_p0   = proj_on_line(p0);
+    scalar_t pr_p1   = proj_on_line(p1);
+    scalar_t pr_p_df = proj_on_line(p_df);
 
     scalar_t t0 = pr_p0 + (pr_p_df - pr_p0) * s_dist0 / (s_dist0 - s_dist_df);
     scalar_t t1 = pr_p1 + (pr_p_df - pr_p1) * s_dist1 / (s_dist1 - s_dist_df);
@@ -456,7 +473,7 @@ bool Triangle3D::intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
     if (!bound_box_.intersects(triangle.bound_box_))
-         return false;
+          return false;
 
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (11.5.4)
     Triangle3D t0 = *this;

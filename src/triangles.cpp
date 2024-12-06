@@ -474,8 +474,8 @@ bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t
 
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
-    // if (!bound_box_.intersects(triangle.bound_box_))
-    //       return false;
+    if (!bound_box_.intersects(triangle.bound_box_))
+          return false;
 
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (11.5.4)
     Triangle3D t0 = *this;

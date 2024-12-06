@@ -196,7 +196,7 @@ private:
     BoundingBox bound_box_;
 
     // helper for 'intersects_Triangle3D', t0.plane_ == t1.plane_
-    bool intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1) const;
+    bool static intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1);
 public:
     class DegeneratedTriangle : public GeomException
     {

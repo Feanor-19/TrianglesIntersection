@@ -390,6 +390,8 @@ inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
         std::swap(a, b);
     if (a.second > c.second)
         std::swap(a, c);
+    if (b.second > c.second)
+        std::swap(b, c);
 
     if (b.second < 0) // if two were negative, one positive 
         return {c, b, a};
@@ -444,7 +446,7 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line,
     return {t0, t1};
 }
 
-bool Triangle3D::intersect_Triangle2D(const Triangle3D &t0, const Triangle3D &t1) const
+bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 {
     assert(t0.plane_ == t1.plane_);
 
@@ -499,7 +501,7 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
         if (!(t0.plane_ == t1.plane_))
             return false;
 
-        return intersect_Triangle2D(t0, t1);
+        return intersects_Triangle2D(t0, t1);
     } 
 
     scalar_t s_dist01 = t1.plane_.s_dist_to_point(t0.p1_);

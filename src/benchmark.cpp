@@ -53,8 +53,12 @@ void BM(benchmark::State &state, Args&&... args)
     }
 }
 
-BENCHMARK_CAPTURE(BM, full_rand_10000, std::string("benchmark_data/full_rand_10000.dat"));
+//BENCHMARK_CAPTURE(BM, full_rand_10000, std::string("benchmark_data/full_rand_10000.dat"));
 
 BENCHMARK_CAPTURE(BM, set_trs_10000, std::string("benchmark_data/set_trs_10000.dat"));
+
+BENCHMARK_CAPTURE(BM, set_trs_10000_1000_10, std::string("benchmark_data/set_trs_10000_1000_10.dat"));
+
+BENCHMARK_CAPTURE(BM, set_pts_100000, std::string("benchmark_data/set_pts_100000.dat"));
 
 BENCHMARK_MAIN();

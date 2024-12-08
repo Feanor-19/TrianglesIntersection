@@ -491,6 +491,10 @@ TEST(Triangle3D, IntersectsTriangle3D)
     EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
      .intersects_Triangle3D({{0,0.5,0}, {0,2,0}, {-1,2,0}})));
 
+    // complanar, no intersection
+    EXPECT_FALSE(( Triangle3D{{1, 1, 0}, {3, 1, 0}, {1, 3, 0}}
+     .intersects_Triangle3D({{0, 0, 0}, {1, 0, 0}, {0, 1, 0}})));
+
     // from random
     Triangle3D t0{{331.45348239878297, 946.1053420056721, 952.8130103892371},
                   {329.3675304584714, 950.149787753491, 955.6291984713811},

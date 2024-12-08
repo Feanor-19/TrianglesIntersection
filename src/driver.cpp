@@ -65,19 +65,18 @@ void Driver::parse_input(ListPoint3D &points_out, ListLineSeg3D &linesegs_out,
     }
 }
 
-std::vector<Driver::index_t> Driver::get_inds_with_intscs(ListPoint3D &points, 
+std::set<Driver::index_t> Driver::get_inds_with_intscs(ListPoint3D &points, 
                                                           ListLineSeg3D &linesegs, 
                                                           ListTriangle3D &triangles)
 {
     using namespace Geom;
 
-    std::vector<index_t> indcs;
-    indcs.reserve(points.size() + linesegs.size() + triangles.size());
+    std::set<index_t> indcs;
 
     //REVIEW - попытка сократить повторяющиеся маленькие кусочки кода ниже
     auto push_and_erase = [&indcs]<typename List>(List list, typename List::iterator it)
     {
-        indcs.push_back(it->first);
+        indcs.insert(it->first);
         list.erase(it);
     };
     
@@ -103,7 +102,7 @@ std::vector<Driver::index_t> Driver::get_inds_with_intscs(ListPoint3D &points,
         }
 
         continue;
-        found_p: indcs.push_back(it_out->first);
+        found_p: indcs.insert(it_out->first);
     }
 
     for (auto it_out = linesegs.begin(); it_out != linesegs.end(); it_out++)
@@ -121,7 +120,7 @@ std::vector<Driver::index_t> Driver::get_inds_with_intscs(ListPoint3D &points,
         }
 
         continue;
-        found_ls: indcs.push_back(it_out->first);
+        found_ls: indcs.insert(it_out->first);
     }
 
     for (auto it_out = triangles.begin(); it_out != triangles.end(); it_out++)
@@ -133,7 +132,7 @@ std::vector<Driver::index_t> Driver::get_inds_with_intscs(ListPoint3D &points,
         }
 
         continue;
-        found_tr: indcs.push_back(it_out->first);
+        found_tr: indcs.insert(it_out->first);
     }
 
     return indcs;

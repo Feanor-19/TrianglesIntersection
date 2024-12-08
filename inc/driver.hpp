@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <list>
+#include <set>
 #include <iostream>
 
 #include "triangles.hpp"
@@ -19,7 +20,7 @@ using ListTriangle3D = std::list<std::pair<index_t, Geom::Triangle3D>>;
 void parse_input(ListPoint3D &points_out, ListLineSeg3D &linesegs_out,
                  ListTriangle3D &triangles_out, const std::vector<double> &inp);
 
-std::vector<index_t> get_inds_with_intscs(ListPoint3D &points, 
+std::set<index_t> get_inds_with_intscs(ListPoint3D &points, 
                                           ListLineSeg3D &linesegs, 
                                           ListTriangle3D &triangles);
 };

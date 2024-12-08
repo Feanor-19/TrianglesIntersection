@@ -40,13 +40,12 @@ void BM(benchmark::State &state, Args&&... args)
         std::cout << "Line segments: " << linesegs.size() << std::endl;
         std::cout << "Triangles: " << triangles.size() << std::endl;
         
-        std::vector<index_t> indcs = get_inds_with_intscs(points, linesegs, triangles);
+        std::set<index_t> indcs = get_inds_with_intscs(points, linesegs, triangles);
 
         for (auto ind : indcs)
         {
-            std::cout << ind << " ";
+            std::cout << ind << std::endl;
         }
-        std::cout << std::endl;
 
         file.clear();
         file.seekg(0, std::ios::beg);

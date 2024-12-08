@@ -40,13 +40,12 @@ int main()
         ListTriangle3D triangles;
         parse_input(points, linesegs, triangles, inp);
         
-        std::vector<index_t> indcs = get_inds_with_intscs(points, linesegs, triangles);
+        std::set<index_t> indcs = get_inds_with_intscs(points, linesegs, triangles);
 
         for (auto ind : indcs)
         {
-            std::cout << ind << " ";
+            std::cout << ind << std::endl;
         }
-        std::cout << std::endl;
     }
     catch(const std::logic_error& e)
     {

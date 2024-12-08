@@ -453,15 +453,17 @@ bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (7.7.2)
 
     //REVIEW - Попытка уменьшить количество _маленького_ одинакового кода, но не используя макросы
+    // returns true if ax_dir is a separating ax
     auto check_edge = [](const Point3D &p_i, const Point3D &p_i_plus_1, const Vector3D &n, const Triangle3D &other_t)
     {
         Vector3D ax_dir = cross_prod(p_i_plus_1 - p_i, n);
-        return leq(dot_prod(ax_dir, other_t.p1_ - p_i), 0) > 0 
-            && leq(dot_prod(ax_dir, other_t.p2_ - p_i), 0) > 0 
-            && leq(dot_prod(ax_dir, other_t.p3_ - p_i), 0) > 0;
+        return !leq(dot_prod(ax_dir, other_t.p1_ - p_i), 0)
+            && !leq(dot_prod(ax_dir, other_t.p2_ - p_i), 0) 
+            && !leq(dot_prod(ax_dir, other_t.p3_ - p_i), 0);
     };
 
-    auto check_triangle = [check_edge](const Triangle3D &this_t, const Triangle3D &other_t)
+    // returns true if separating ax among edges of this_t is found (triangles don't intersect)
+    auto no_intersection = [check_edge](const Triangle3D &this_t, const Triangle3D &other_t)
     {
         Vector3D this_n = this_t.plane().n_vec();
         return check_edge(this_t.p1_, this_t.p2_, this_n, other_t) 
@@ -469,7 +471,7 @@ bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t
             || check_edge(this_t.p3_, this_t.p1_, this_n, other_t);
     };
 
-    return check_triangle(t0, t1) || check_triangle(t1, t0);
+    return !no_intersection(t0, t1) && !no_intersection(t1, t0);
 }
 
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const

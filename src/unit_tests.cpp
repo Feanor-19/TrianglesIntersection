@@ -483,6 +483,10 @@ TEST(Triangle3D, IntersectsTriangle3D)
     EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
      .intersects_Triangle3D({{0,0.5,-1}, {0,0.5,1}, {-1,2,1}})));
 
+    // one point intersection, non-vertex & non-vertex, not complanar
+    EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+     .intersects_Triangle3D({{0,0.5,-0.5}, {0,0.5,0.5}, {-1,0,0}})));
+
     // lineseg on edge, not complanar
     EXPECT_TRUE(( Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
      .intersects_Triangle3D({{0,0.5,-1}, {0,0.5,1}, {0,2,1}})));

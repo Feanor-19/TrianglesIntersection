@@ -7,21 +7,14 @@
 
 int main()
 {
-    using namespace Geom;
+    // using namespace Geom;
 
     // int i = 0;
     // try
     // {    
-    //     Triangle3D t0{{1, 1, 0},
-    //                   {3, 1, 0},
-    //                   {1, 3, 0}};
-
-    //     Triangle3D t1{{0, 0, 0},
-    //                   {1, 0, 0},
-    //                   {0, 1, 0}};
-
     //     std::cout << std::boolalpha;
-    //     std::cout << t0.intersects_Triangle3D(t1) << std::endl;
+    //     std::cout << Triangle3D{{0,0,0}, {1,0,0}, {0,1,0}}
+    //     .intersects_Triangle3D({{0,0.5,-0.5}, {0,0.5,0.5}, {-1,0,0}}) << std::endl;
     // }
     // catch(const std::exception& e)
     // {

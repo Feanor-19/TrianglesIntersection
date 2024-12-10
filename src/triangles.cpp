@@ -376,33 +376,6 @@ bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
 }
 
 // helper for 'intersects_Triangle3D'
-namespace PullDiffSign{
-
-using PairPointSc = std::pair<Point3D, scalar_t>;
-using Tuple3 = std::tuple<PairPointSc,PairPointSc,PairPointSc>;
-
-// assumes that two of the given numbers has one sign, and the other one - another sign,
-// (all non-zero) and returns the one with different from the other two's sign,
-inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
-    assert(!eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0));
-    
-    if (a.second > b.second)
-        std::swap(a, b);
-    if (a.second > c.second)
-        std::swap(a, c);
-    if (b.second > c.second)
-        std::swap(b, c);
-
-    if (b.second < 0) // if two were negative, one positive 
-        return {c, b, a};
-
-    // if two were positive, one negative
-    return {a, b, c};
-}
-
-} // namespace PullDiffSign
-
-// helper for 'intersects_Triangle3D'
 inline bool are_all_the_same_sign(scalar_t a, scalar_t b, scalar_t c)
 {
     return (a > 0 && b > 0 && c > 0)
@@ -411,39 +384,24 @@ inline bool are_all_the_same_sign(scalar_t a, scalar_t b, scalar_t c)
 
 // helper for 'intersects_Triangle3D'
 // computes interval on the line, clipped by the triangle, intersecting it
+// return {t_min, t_max}
 inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line, 
-                                                      Point3D p1_, Point3D p2_, Point3D p3_,
-                                                      scalar_t s_dist1_, scalar_t s_dist2_, scalar_t s_dist3_)
+                                                      Point3D p1, Point3D p2, Point3D p3)
 {
-    assert(!(eq(s_dist1_, 0) && eq(s_dist2_, 0) && eq(s_dist3_, 0)));
-    
     Point3D l_p = intsc_line.p();
     Vector3D l_d = intsc_line.dir(); 
     auto proj_on_line = [l_p, l_d](const Point3D &p) {return dot_prod(p-l_p,l_d);};
 
-    bool s_dist1_0 = eq(s_dist1_, 0), s_dist2_0 = eq(s_dist2_, 0), s_dist3_0 = eq(s_dist3_, 0); 
+    scalar_t t1 = proj_on_line(p1), t2 = proj_on_line(p2), t3 = proj_on_line(p3);
 
-    // if two of the given points are on the line
-    if (s_dist1_0 && s_dist2_0) return {proj_on_line(p1_),proj_on_line(p2_)};
-    if (s_dist2_0 && s_dist3_0) return {proj_on_line(p2_),proj_on_line(p3_)};
-    if (s_dist1_0 && s_dist3_0) return {proj_on_line(p1_),proj_on_line(p3_)};
+    if (!leq(t1, t2))
+        std::swap(t1, t2);
+    if (!leq(t1, t3))
+        std::swap(t1, t3);
+    if (!leq(t2, t3))
+        std::swap(t2, t3);
 
-    // if exaclty one of the points is on the line
-    if (s_dist1_0) return {proj_on_line(p1_),proj_on_line(p1_)};
-    if (s_dist2_0) return {proj_on_line(p2_),proj_on_line(p2_)};
-    if (s_dist3_0) return {proj_on_line(p3_),proj_on_line(p3_)};
-
-    auto [pps_df, pps0, pps1] = PullDiffSign::pull_diff_sign({p1_, s_dist1_}, {p2_, s_dist2_}, {p3_, s_dist3_});
-    auto [p_df, s_dist_df] = pps_df; auto [p0, s_dist0] = pps0; auto [p1, s_dist1] = pps1;
-
-    // projecting points on the line
-    scalar_t pr_p0   = proj_on_line(p0);
-    scalar_t pr_p1   = proj_on_line(p1);
-    scalar_t pr_p_df = proj_on_line(p_df);
-
-    scalar_t t0 = pr_p0 + (pr_p_df - pr_p0) * s_dist0 / (s_dist0 - s_dist_df);
-    scalar_t t1 = pr_p1 + (pr_p_df - pr_p1) * s_dist1 / (s_dist1 - s_dist_df);
-    return {t0, t1};
+    return {t1, t3};
 }
 
 bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
@@ -515,11 +473,12 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 
     Line3D intsc_line = *intersect_planes(t0.plane_, t1.plane_);
 
-    auto [t00, t01] = compute_interval(intsc_line, t0.p1_, t0.p2_, t0.p3_, s_dist01, s_dist02, s_dist03);
-    auto [t10, t11] = compute_interval(intsc_line, t1.p1_, t1.p2_, t1.p3_, s_dist11, s_dist12, s_dist13);
+    auto [t0_min, t0_max] = compute_interval(intsc_line, t0.p1_, t0.p2_, t0.p3_);
+    auto [t1_min, t1_max] = compute_interval(intsc_line, t1.p1_, t1.p2_, t1.p3_);
+    assert(!leq(t0_max, t0_min)); assert(!leq(t1_max, t1_min));
 
-    return in_range(t00, t10, t01) || in_range(t00, t11, t01) 
-        || in_range(t10, t00, t11) || in_range(t10, t01, t11);    
+    return in_range(t0_min, t1_min, t0_max) || in_range(t0_min, t1_max, t0_max) 
+        || in_range(t1_min, t0_min, t1_max) || in_range(t1_min, t0_max, t1_max);    
 }
 
 BoundingBox::BoundingBox(std::initializer_list<Point3D> points):

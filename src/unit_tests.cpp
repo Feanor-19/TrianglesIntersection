@@ -4,6 +4,9 @@
 
 #include "triangles.hpp"
 
+// USED TO GET ACCESS TO 'inline' FUNCTIONS IN THIS FILE
+#include "triangles.cpp"
+
 using namespace Geom;
 
 TEST(Point3D, CtorOk)
@@ -215,6 +218,49 @@ TEST(Common, IntersectPlanes)
     p2 = {{0,42,0}, {0,0,0}};
     Line3D l = {Vector3D{0,0,19}, Point3D{0,0,0}};
     EXPECT_TRUE(l == *intersect_planes(p1, p2));
+}
+
+TEST(Common, InRange)
+{
+    EXPECT_TRUE(in_range(-1, 0, 1));
+    EXPECT_TRUE(in_range(0, 0, 1));
+    EXPECT_TRUE(in_range(-1, 0, 0));
+    EXPECT_TRUE(in_range(0, 0, 0));
+
+    EXPECT_FALSE(in_range(1, 5, 2));
+    EXPECT_FALSE(in_range(1, -3, 2));
+
+    EXPECT_DEBUG_DEATH(in_range(1, 0, -1), ".*");
+}
+
+TEST(Common, PullDiffSign)
+{
+    using namespace PullDiffSign;
+    Point3D p{1,1,1};
+
+    // all non-zero
+    PairPointSc a = std::make_pair(p, -1);
+    PairPointSc b = std::make_pair(p, 1);
+    PairPointSc c = std::make_pair(p, 1);
+
+    EXPECT_TRUE((pull_diff_sign(a,b,c) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(b,c,a) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(c,a,b) == Tuple3{a,b,c}));
+
+    // one zero
+    a = std::make_pair(p, -1);
+    b = std::make_pair(p, 0);
+    c = std::make_pair(p, 1);
+    
+    EXPECT_TRUE((pull_diff_sign(a,b,c) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(b,c,a) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(c,a,b) == Tuple3{a,b,c}));
+
+
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 0}, {p, 0}, {p, 0}), ".*");
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 0}, {p, 0}, {p, 1}), ".*");
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 0}, {p, 1}, {p, 0}), ".*");
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 1}, {p, 0}, {p, 0}), ".*");
 }
 
 TEST(LineSeg3D, CtorOk)

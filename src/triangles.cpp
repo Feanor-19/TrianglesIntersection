@@ -381,10 +381,14 @@ namespace PullDiffSign{
 using PairPointSc = std::pair<Point3D, scalar_t>;
 using Tuple3 = std::tuple<PairPointSc,PairPointSc,PairPointSc>;
 
-// assumes that two of the given numbers has one sign, and the other one - another sign,
-// (all non-zero) and returns the one with different from the other two's sign,
+// assumes that two of the given numbers has one sign, and the other one - another sign
+// and returns the one with different from the other two's sign.
+// not more than one zero input is allowed
 inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
-    assert(!eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0));
+    assert( (!eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0)) 
+         || ( eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0))
+         || (!eq(a.second, 0) &&  eq(b.second, 0) && !eq(c.second, 0))
+         || (!eq(a.second, 0) && !eq(b.second, 0) &&  eq(c.second, 0)) );
     
     if (a.second > b.second)
         std::swap(a, b);
@@ -522,11 +526,14 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 
     Line3D intsc_line = *intersect_planes(t0.plane_, t1.plane_);
 
-    auto [t00, t01] = compute_interval(intsc_line, t0.p1_, t0.p2_, t0.p3_, s_dist01, s_dist02, s_dist03);
-    auto [t10, t11] = compute_interval(intsc_line, t1.p1_, t1.p2_, t1.p3_, s_dist11, s_dist12, s_dist13);
+    auto [t0_min, t0_max] = compute_interval(intsc_line, t0.p1_, t0.p2_, t0.p3_, s_dist01, s_dist02, s_dist03);
+    auto [t1_min, t1_max] = compute_interval(intsc_line, t1.p1_, t1.p2_, t1.p3_, s_dist11, s_dist12, s_dist13);
 
-    return in_range(t00, t10, t01) || in_range(t00, t11, t01) 
-        || in_range(t10, t00, t11) || in_range(t10, t01, t11);    
+    if (!leq(t0_min, t0_max)) std::swap(t0_min, t0_max);
+    if (!leq(t1_min, t1_max)) std::swap(t1_min, t1_max);
+
+    return in_range(t0_min, t1_min, t0_max) || in_range(t0_min, t1_max, t0_max) 
+        || in_range(t1_min, t0_min, t1_max) || in_range(t1_min, t0_max, t1_max);    
 }
 
 BoundingBox::BoundingBox(std::initializer_list<Point3D> points):

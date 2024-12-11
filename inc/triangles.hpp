@@ -34,11 +34,12 @@ inline bool leq(scalar_t a, scalar_t b)
     return (a < b) || eq(a, b);
 }
 
-// return true if [bound_1 <= x && x <= bound_2], ATTENTION: bound_1 <= bound_2!
+// return true if bound_1 <= bound_2 && [bound_1 <= x && x <= bound_2]
+//          or if bound_2 <= bound_1 && [bound_2 <= x && x <= bound_1]
 inline bool in_range(scalar_t bound_1, scalar_t x, scalar_t bound_2)
 {
-    assert(leq(bound_1, bound_2));
-    return leq(bound_1, x) && leq(x, bound_2);
+    return leq(bound_1, bound_2) && leq(bound_1, x) && leq(x, bound_2)
+        || leq(bound_2, bound_1) && leq(bound_2, x) && leq(x, bound_1);
 }
 
 // if one of parameters of the constructor is NaN

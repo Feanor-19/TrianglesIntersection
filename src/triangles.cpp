@@ -406,6 +406,9 @@ inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
 
 } // namespace PullDiffSign
 
+namespace
+{
+
 // helper for 'intersects_Triangle3D'
 inline bool are_all_same_sign(scalar_t a, scalar_t b, scalar_t c)
 {
@@ -422,15 +425,15 @@ inline bool are_all_same_sign(scalar_t a, scalar_t b)
 
 // helper for 'intersects_Triangle3D'
 // computes interval on the line, clipped by the triangle, intersecting it
-inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line, 
-                                                      Point3D p1_, Point3D p2_, Point3D p3_,
+// all three dists mustn't equal 0 simultaneously
+inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_l, Triangle3D tr,
                                                       scalar_t s_dist1_, scalar_t s_dist2_, scalar_t s_dist3_)
 {
     assert(!(eq(s_dist1_, 0) && eq(s_dist2_, 0) && eq(s_dist3_, 0)));
+
+    Point3D p1_ = tr.p1(), p2_ = tr.p2(), p3_ = tr.p3();
     
-    Point3D l_p = intsc_line.p();
-    Vector3D l_d = intsc_line.dir(); 
-    auto proj_on_line = [l_p, l_d](const Point3D &p) {return dot_prod(p-l_p,l_d);};
+    auto proj_on_line = [intsc_l](const Point3D &p) {return dot_prod(p-intsc_l.p(),intsc_l.dir());};
 
     bool s_dist1_0 = eq(s_dist1_, 0), s_dist2_0 = eq(s_dist2_, 0), s_dist3_0 = eq(s_dist3_, 0); 
 
@@ -456,6 +459,8 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line,
     scalar_t t1 = pr_p1 + (pr_p_df - pr_p1) * s_dist1 / (s_dist1 - s_dist_df);
     return {t0, t1};
 }
+
+} // anon namespace
 
 bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 {
@@ -526,8 +531,8 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 
     Line3D intsc_line = *intersect_planes(t0.plane_, t1.plane_);
 
-    auto [t0_min, t0_max] = compute_interval(intsc_line, t0.p1_, t0.p2_, t0.p3_, s_dist01, s_dist02, s_dist03);
-    auto [t1_min, t1_max] = compute_interval(intsc_line, t1.p1_, t1.p2_, t1.p3_, s_dist11, s_dist12, s_dist13);
+    auto [t0_min, t0_max] = compute_interval(intsc_line, t0, s_dist01, s_dist02, s_dist03);
+    auto [t1_min, t1_max] = compute_interval(intsc_line, t1, s_dist11, s_dist12, s_dist13);
 
     if (!leq(t0_min, t0_max)) std::swap(t0_min, t0_max);
     if (!leq(t1_min, t1_max)) std::swap(t1_min, t1_max);

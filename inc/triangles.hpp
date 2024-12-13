@@ -34,12 +34,11 @@ inline bool leq(scalar_t a, scalar_t b)
     return (a < b) || eq(a, b);
 }
 
-// return true if bound_1 <= bound_2 && [bound_1 <= x && x <= bound_2]
-//          or if bound_2 <= bound_1 && [bound_2 <= x && x <= bound_1]
+// return true if [bound_1 <= x && x <= bound_2], assumes bound_1 <= bound_2
 inline bool in_range(scalar_t bound_1, scalar_t x, scalar_t bound_2)
 {
-    return leq(bound_1, bound_2) && leq(bound_1, x) && leq(x, bound_2)
-        || leq(bound_2, bound_1) && leq(bound_2, x) && leq(x, bound_1);
+    assert(leq(bound_1, bound_2));
+    return leq(bound_1, x) && leq(x, bound_2);
 }
 
 // if one of parameters of the constructor is NaN
@@ -195,9 +194,6 @@ private:
     Plane plane_; // must be consistent with other private fields:
                   // plane_.n_vec must be [p1p2, p1p3]
     BoundingBox bound_box_;
-
-    // helper for 'intersects_Triangle3D', t0.plane_ == t1.plane_
-    bool static intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1);
 public:
     class DegeneratedTriangle : public GeomException
     {

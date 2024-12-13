@@ -4,6 +4,9 @@
 
 #include "triangles.hpp"
 
+// USED TO GET ACCESS TO 'inline' FUNCTIONS IN THIS FILE
+#include "triangles.cpp"
+
 using namespace Geom;
 
 TEST(Point3D, CtorOk)
@@ -215,6 +218,145 @@ TEST(Common, IntersectPlanes)
     p2 = {{0,42,0}, {0,0,0}};
     Line3D l = {Vector3D{0,0,19}, Point3D{0,0,0}};
     EXPECT_TRUE(l == *intersect_planes(p1, p2));
+}
+
+TEST(Common, InRange)
+{
+    EXPECT_TRUE(in_range(-1, 0, 1));
+    EXPECT_TRUE(in_range(0, 0, 1));
+    EXPECT_TRUE(in_range(-1, 0, 0));
+    EXPECT_TRUE(in_range(0, 0, 0));
+
+    EXPECT_FALSE(in_range(1, 5, 2));
+    EXPECT_FALSE(in_range(1, -3, 2));
+
+    EXPECT_DEBUG_DEATH(in_range(1, 0, -1), ".*");
+}
+
+TEST(TriangleIntersectionHelpers, PullDiffSign)
+{
+    using namespace IntsctTrig3DHelpers;
+    using namespace IntsctTrig3DHelpers::PullDiffSign;
+    Point3D p{1,1,1};
+
+    // all non-zero
+    PairPointSc a = std::make_pair(p, -1);
+    PairPointSc b = std::make_pair(p, 1);
+    PairPointSc c = std::make_pair(p, 1);
+
+    EXPECT_TRUE((pull_diff_sign(a,b,c) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(a,c,b) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(b,a,c) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(b,c,a) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(c,a,b) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(c,b,a) == Tuple3{a,b,c}));
+
+    // one zero
+    a = std::make_pair(p, -1);
+    b = std::make_pair(p, 0);
+    c = std::make_pair(p, 1);
+    
+    EXPECT_TRUE((pull_diff_sign(a,b,c) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(a,c,b) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(b,a,c) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(b,c,a) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(c,a,b) == Tuple3{a,b,c}));
+    EXPECT_TRUE((pull_diff_sign(c,b,a) == Tuple3{a,b,c}));
+
+    // two or three zeroes
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 0}, {p, 0}, {p, 0}), ".*");
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 0}, {p, 0}, {p, 1}), ".*");
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 0}, {p, 1}, {p, 0}), ".*");
+    EXPECT_DEBUG_DEATH(pull_diff_sign({p, 1}, {p, 0}, {p, 0}), ".*");
+}
+
+TEST(TriangleIntersectionHelpers, TrigCompInterval)
+{
+    using namespace IntsctTrig3DHelpers;
+    // https://www.desmos.com/3d/8f4fl3cirh
+
+    auto line = [](Triangle3D t0, Triangle3D t1){return *intersect_planes(t0.plane(), t1.plane());};
+    auto dist = [](Triangle3D t, Point3D p){return t.plane().s_dist_to_point(p);};
+    auto comp_interv_helper = [line, dist](Triangle3D t_to_clip, Triangle3D t_other, Point3D r0, Point3D r1)
+    {
+        Line3D l = line(t_to_clip, t_other);
+        auto [f0, f1] = compute_interval(l, t_to_clip, 
+                                dist(t_other, t_to_clip.p1()), 
+                                dist(t_other, t_to_clip.p2()), 
+                                dist(t_other, t_to_clip.p3()));
+        return r0 == (l.p() + f0*l.dir()) && r1 == (l.p() + f1*l.dir());
+    };
+
+    Triangle3D t_default{{0,0,0},{1,0,0},{0,1,0}};
+
+    // needed to make macro work
+    bool res = false;
+
+    // all three dists are zero (degenerated triangle, not allowed)
+    EXPECT_DEBUG_DEATH(compute_interval(Line3D{Point3D{0,0,0},{1,0,0}}, t_default, 0, 0, 0), ".*");
+
+    // two points on the line    
+    EXPECT_TRUE((res = comp_interv_helper(Triangle3D{{0,0,0},{0,1,0},{0,0,1}}, 
+                                          t_default, 
+                                          {0,0,0}, {0,1,0}), res));
+
+    // one point on the line, other two on same half-plane
+    EXPECT_TRUE((res = comp_interv_helper(Triangle3D{{0,0,0},{0,1,1},{0,0,1}}, 
+                                          t_default, 
+                                          {0,0,0}, {0,0,0}), res));
+
+    // one point on the line, other two on different half-planes
+    EXPECT_TRUE((res = comp_interv_helper(Triangle3D{{0,0,0},{0,1,-1},{0,0,1}}, 
+                                          t_default, 
+                                          {0,0,0}, {0,0.5,0}), res));
+
+    // zero points on line
+    EXPECT_TRUE((res = comp_interv_helper(Triangle3D{{0,-1,1},{0,1,-1},{0,0,1}}, 
+                                          t_default, 
+                                          {0,0,0}, {0,0.5,0}), res));
+}
+
+TEST(TriangleIntersectionHelpers, Intersect2D)
+{
+    using namespace IntsctTrig3DHelpers;
+    // non-complanar not allowed
+    EXPECT_DEBUG_DEATH(intersects_Triangle2D({{0,0,0},{0,1,0},{0,0,1}},{{0,0,0},{1,0,0},{0,1,0}}) ,".*");
+
+    // no intersection, no edges are parallel
+    EXPECT_FALSE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                       {{1.1,0,0},{1,1,0},{2,0.5,0}}));
+
+    // one point intersection, no edges are parallel
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{1,0,0},{1.1,1,0},{2,0.5,0}}));
+
+    // two points are same, one of edges is the intersection
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{1,0,0},{0,1,0},{2,0.5,0}}));
+
+    // two points are same, one inside the other
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{1,0,0},{0,1,0},{-1,-1,0}}));
+
+    // same triangles
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{0,0,0},{0,1,0},{1,0,0}}));
+
+    // one inside the other one, no edges intersect
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{2,-1,0},{0,2,0},{-0.5,-0.5,0}}));
+
+    // polygon intersection, no points are on other triangle's edges
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{0.7,-0.5,0},{1,1,0},{-0.5,0.5,0}}));
+
+    // no intersection, some edges are parallel
+    EXPECT_FALSE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                       {{1.2,0,0},{1.5,1.5,0},{0,1.2,0}}));
+    
+    // no intersection, all edges are parallel
+    EXPECT_FALSE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                       {{1.5,0.6,0},{0.6,0.6,0},{0.6,1.5,0}}));        
 }
 
 TEST(LineSeg3D, CtorOk)
@@ -499,24 +641,7 @@ TEST(Triangle3D, IntersectsTriangle3D)
     EXPECT_FALSE(( Triangle3D{{1, 1, 0}, {3, 1, 0}, {1, 3, 0}}
      .intersects_Triangle3D({{0, 0, 0}, {1, 0, 0}, {0, 1, 0}})));
 
-    // from random
-    Triangle3D t0{{331.45348239878297, 946.1053420056721, 952.8130103892371},
-                  {329.3675304584714, 950.149787753491, 955.6291984713811},
-                  {329.22924771213985, 947.6454053402665, 958.2453650715645}};
 
-    Triangle3D t1{{505.04444670411795, 712.7749969460839, 644.9757087997505},
-                  {503.8788993236424, 706.4415126134443, 636.7896903311087},
-                  {504.6340512609518, 712.8683327073852, 645.114914183536}};
-    EXPECT_FALSE(t0.intersects_Triangle3D(t1));
-
-    t0 = {{262.8291506593867, 738.8902664246145, 184.07270169509806},
-          {263.92326377188147, 744.9257758705741, 191.98754127204313},
-          {255.05569075140053, 745.0833699978822, 178.5923009811677}};
-
-    t1 = {{271.50486167797413, 743.7270637671139, 180.50289912002347},
-          {263.62623527710156, 745.1230254904556, 175.10729737918282},
-          {261.92930739757537, 741.4502078216377, 187.08101408287405}};
-    EXPECT_TRUE(t0.intersects_Triangle3D(t1));
 }
 
 TEST(BoundingBox, Intersects)

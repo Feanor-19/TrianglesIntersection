@@ -375,16 +375,23 @@ bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
     return has_point(intsc_p);
 }
 
-// helper for 'intersects_Triangle3D'
-namespace PullDiffSign{
+namespace IntsctTrig3DHelpers
+{
+
+namespace PullDiffSign
+{
 
 using PairPointSc = std::pair<Point3D, scalar_t>;
 using Tuple3 = std::tuple<PairPointSc,PairPointSc,PairPointSc>;
 
-// assumes that two of the given numbers has one sign, and the other one - another sign,
-// (all non-zero) and returns the one with different from the other two's sign,
+// assumes that two of the given numbers has one sign, and the other one - another sign
+// and returns the one with different from the other two's sign.
+// not more than one zero input is allowed
 inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
-    assert(!eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0));
+    assert( (!eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0)) 
+         || ( eq(a.second, 0) && !eq(b.second, 0) && !eq(c.second, 0))
+         || (!eq(a.second, 0) &&  eq(b.second, 0) && !eq(c.second, 0))
+         || (!eq(a.second, 0) && !eq(b.second, 0) &&  eq(c.second, 0)) );
     
     if (a.second > b.second)
         std::swap(a, b);
@@ -402,31 +409,28 @@ inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
 
 } // namespace PullDiffSign
 
-// helper for 'intersects_Triangle3D'
 inline bool are_all_same_sign(scalar_t a, scalar_t b, scalar_t c)
 {
     return (a > 0 && b > 0 && c > 0)
         || (a < 0 && b < 0 && c < 0);
 }
 
-// helper for 'intersects_Triangle3D' 
 inline bool are_all_same_sign(scalar_t a, scalar_t b)
 {
     return (a > 0 && b > 0)
         || (a < 0 && b < 0);
 }
 
-// helper for 'intersects_Triangle3D'
 // computes interval on the line, clipped by the triangle, intersecting it
-inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line, 
-                                                      Point3D p1_, Point3D p2_, Point3D p3_,
+// all three dists mustn't equal 0 simultaneously
+inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_l, Triangle3D tr,
                                                       scalar_t s_dist1_, scalar_t s_dist2_, scalar_t s_dist3_)
 {
     assert(!(eq(s_dist1_, 0) && eq(s_dist2_, 0) && eq(s_dist3_, 0)));
+
+    Point3D p1_ = tr.p1(), p2_ = tr.p2(), p3_ = tr.p3();
     
-    Point3D l_p = intsc_line.p();
-    Vector3D l_d = intsc_line.dir(); 
-    auto proj_on_line = [l_p, l_d](const Point3D &p) {return dot_prod(p-l_p,l_d);};
+    auto proj_on_line = [intsc_l](const Point3D &p) {return dot_prod(p-intsc_l.p(),intsc_l.dir());};
 
     bool s_dist1_0 = eq(s_dist1_, 0), s_dist2_0 = eq(s_dist2_, 0), s_dist3_0 = eq(s_dist3_, 0); 
 
@@ -453,9 +457,10 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_line,
     return {t0, t1};
 }
 
-bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
+// t0.plane_ == t1.plane_
+bool intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 {
-    assert(t0.plane_ == t1.plane_);
+    assert(t0.plane() == t1.plane());
 
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (7.7.2)
 
@@ -464,25 +469,28 @@ bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t
     auto check_edge = [](const Point3D &p_i, const Point3D &p_i_plus_1, const Vector3D &n, const Triangle3D &other_t)
     {
         Vector3D ax_dir = cross_prod(p_i_plus_1 - p_i, n);
-        return !leq(dot_prod(ax_dir, other_t.p1_ - p_i), 0)
-            && !leq(dot_prod(ax_dir, other_t.p2_ - p_i), 0) 
-            && !leq(dot_prod(ax_dir, other_t.p3_ - p_i), 0);
+        return !leq(dot_prod(ax_dir, other_t.p1() - p_i), 0)
+            && !leq(dot_prod(ax_dir, other_t.p2() - p_i), 0) 
+            && !leq(dot_prod(ax_dir, other_t.p3() - p_i), 0);
     };
 
     // returns true if separating ax among edges of this_t is found (triangles don't intersect)
     auto no_intersection = [check_edge](const Triangle3D &this_t, const Triangle3D &other_t)
     {
         Vector3D this_n = this_t.plane().n_vec();
-        return check_edge(this_t.p1_, this_t.p2_, this_n, other_t) 
-            || check_edge(this_t.p2_, this_t.p3_, this_n, other_t)
-            || check_edge(this_t.p3_, this_t.p1_, this_n, other_t);
+        return check_edge(this_t.p1(), this_t.p2(), this_n, other_t) 
+            || check_edge(this_t.p2(), this_t.p3(), this_n, other_t)
+            || check_edge(this_t.p3(), this_t.p1(), this_n, other_t);
     };
 
     return !no_intersection(t0, t1) && !no_intersection(t1, t0);
 }
 
+} // IntsctTrig3DHelpers namespace
+
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
+    using namespace IntsctTrig3DHelpers;
     if (!bound_box_.intersects(triangle.bound_box_))
           return false;
 
@@ -522,11 +530,14 @@ bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 
     Line3D intsc_line = *intersect_planes(t0.plane_, t1.plane_);
 
-    auto [t00, t01] = compute_interval(intsc_line, t0.p1_, t0.p2_, t0.p3_, s_dist01, s_dist02, s_dist03);
-    auto [t10, t11] = compute_interval(intsc_line, t1.p1_, t1.p2_, t1.p3_, s_dist11, s_dist12, s_dist13);
+    auto [t0_min, t0_max] = compute_interval(intsc_line, t0, s_dist01, s_dist02, s_dist03);
+    auto [t1_min, t1_max] = compute_interval(intsc_line, t1, s_dist11, s_dist12, s_dist13);
 
-    return in_range(t00, t10, t01) || in_range(t00, t11, t01) 
-        || in_range(t10, t00, t11) || in_range(t10, t01, t11);    
+    if (!leq(t0_min, t0_max)) std::swap(t0_min, t0_max);
+    if (!leq(t1_min, t1_max)) std::swap(t1_min, t1_max);
+
+    return in_range(t0_min, t1_min, t0_max) || in_range(t0_min, t1_max, t0_max) 
+        || in_range(t1_min, t0_min, t1_max) || in_range(t1_min, t0_max, t1_max);    
 }
 
 BoundingBox::BoundingBox(std::initializer_list<Point3D> points):

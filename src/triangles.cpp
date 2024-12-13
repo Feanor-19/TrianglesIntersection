@@ -375,8 +375,11 @@ bool Triangle3D::intersects_LineSeg3D(const LineSeg3D &lineseg) const
     return has_point(intsc_p);
 }
 
-// helper for 'intersects_Triangle3D'
-namespace PullDiffSign{
+namespace IntsctTrig3DHelpers
+{
+
+namespace PullDiffSign
+{
 
 using PairPointSc = std::pair<Point3D, scalar_t>;
 using Tuple3 = std::tuple<PairPointSc,PairPointSc,PairPointSc>;
@@ -406,24 +409,18 @@ inline Tuple3 pull_diff_sign(PairPointSc a, PairPointSc b, PairPointSc c) {
 
 } // namespace PullDiffSign
 
-namespace
-{
-
-// helper for 'intersects_Triangle3D'
 inline bool are_all_same_sign(scalar_t a, scalar_t b, scalar_t c)
 {
     return (a > 0 && b > 0 && c > 0)
         || (a < 0 && b < 0 && c < 0);
 }
 
-// helper for 'intersects_Triangle3D' 
 inline bool are_all_same_sign(scalar_t a, scalar_t b)
 {
     return (a > 0 && b > 0)
         || (a < 0 && b < 0);
 }
 
-// helper for 'intersects_Triangle3D'
 // computes interval on the line, clipped by the triangle, intersecting it
 // all three dists mustn't equal 0 simultaneously
 inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_l, Triangle3D tr,
@@ -460,11 +457,10 @@ inline std::pair<scalar_t, scalar_t> compute_interval(Line3D intsc_l, Triangle3D
     return {t0, t1};
 }
 
-} // anon namespace
-
-bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
+// t0.plane_ == t1.plane_
+bool intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 {
-    assert(t0.plane_ == t1.plane_);
+    assert(t0.plane() == t1.plane());
 
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (7.7.2)
 
@@ -473,25 +469,28 @@ bool Triangle3D::intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t
     auto check_edge = [](const Point3D &p_i, const Point3D &p_i_plus_1, const Vector3D &n, const Triangle3D &other_t)
     {
         Vector3D ax_dir = cross_prod(p_i_plus_1 - p_i, n);
-        return !leq(dot_prod(ax_dir, other_t.p1_ - p_i), 0)
-            && !leq(dot_prod(ax_dir, other_t.p2_ - p_i), 0) 
-            && !leq(dot_prod(ax_dir, other_t.p3_ - p_i), 0);
+        return !leq(dot_prod(ax_dir, other_t.p1() - p_i), 0)
+            && !leq(dot_prod(ax_dir, other_t.p2() - p_i), 0) 
+            && !leq(dot_prod(ax_dir, other_t.p3() - p_i), 0);
     };
 
     // returns true if separating ax among edges of this_t is found (triangles don't intersect)
     auto no_intersection = [check_edge](const Triangle3D &this_t, const Triangle3D &other_t)
     {
         Vector3D this_n = this_t.plane().n_vec();
-        return check_edge(this_t.p1_, this_t.p2_, this_n, other_t) 
-            || check_edge(this_t.p2_, this_t.p3_, this_n, other_t)
-            || check_edge(this_t.p3_, this_t.p1_, this_n, other_t);
+        return check_edge(this_t.p1(), this_t.p2(), this_n, other_t) 
+            || check_edge(this_t.p2(), this_t.p3(), this_n, other_t)
+            || check_edge(this_t.p3(), this_t.p1(), this_n, other_t);
     };
 
     return !no_intersection(t0, t1) && !no_intersection(t1, t0);
 }
 
+} // IntsctTrig3DHelpers namespace
+
 bool Triangle3D::intersects_Triangle3D(const Triangle3D &triangle) const
 {
+    using namespace IntsctTrig3DHelpers;
     if (!bound_box_.intersects(triangle.bound_box_))
           return false;
 

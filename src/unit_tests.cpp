@@ -235,7 +235,8 @@ TEST(Common, InRange)
 
 TEST(TriangleIntersectionHelpers, PullDiffSign)
 {
-    using namespace PullDiffSign;
+    using namespace IntsctTrig3DHelpers;
+    using namespace IntsctTrig3DHelpers::PullDiffSign;
     Point3D p{1,1,1};
 
     // all non-zero
@@ -271,6 +272,7 @@ TEST(TriangleIntersectionHelpers, PullDiffSign)
 
 TEST(TriangleIntersectionHelpers, TrigCompInterval)
 {
+    using namespace IntsctTrig3DHelpers;
     // https://www.desmos.com/3d/8f4fl3cirh
 
     auto line = [](Triangle3D t0, Triangle3D t1){return *intersect_planes(t0.plane(), t1.plane());};
@@ -285,7 +287,7 @@ TEST(TriangleIntersectionHelpers, TrigCompInterval)
         return r0 == (l.p() + f0*l.dir()) && r1 == (l.p() + f1*l.dir());
     };
 
-    Triangle3D t_default = {{0,0,0},{1,0,0},{0,1,0}};
+    Triangle3D t_default{{0,0,0},{1,0,0},{0,1,0}};
 
     // needed to make macro work
     bool res = false;
@@ -314,10 +316,48 @@ TEST(TriangleIntersectionHelpers, TrigCompInterval)
                                           {0,0,0}, {0,0.5,0}), res));
 }
 
-// TEST(TriangleIntersectionHelpers, Intersect2D)
-// {
+TEST(TriangleIntersectionHelpers, Intersect2D)
+{
+    using namespace IntsctTrig3DHelpers;
+    // non-complanar not allowed
+    EXPECT_DEBUG_DEATH(intersects_Triangle2D({{0,0,0},{0,1,0},{0,0,1}},{{0,0,0},{1,0,0},{0,1,0}}) ,".*");
+
+    // no intersection, no edges are parallel
+    EXPECT_FALSE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                       {{1.1,0,0},{1,1,0},{2,0.5,0}}));
+
+    // one point intersection, no edges are parallel
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{1,0,0},{1.1,1,0},{2,0.5,0}}));
+
+    // two points are same, one of edges is the intersection
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{1,0,0},{0,1,0},{2,0.5,0}}));
+
+    // two points are same, one inside the other
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{1,0,0},{0,1,0},{-1,-1,0}}));
+
+    // same triangles
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{0,0,0},{0,1,0},{1,0,0}}));
+
+    // one inside the other one, no edges intersect
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{2,-1,0},{0,2,0},{-0.5,-0.5,0}}));
+
+    // polygon intersection, no points are on other triangle's edges
+    EXPECT_TRUE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                      {{0.7,-0.5,0},{1,1,0},{-0.5,0.5,0}}));
+
+    // no intersection, some edges are parallel
+    EXPECT_FALSE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                       {{1.2,0,0},{1.5,1.5,0},{0,1.2,0}}));
     
-// }
+    // no intersection, all edges are parallel
+    EXPECT_FALSE(intersects_Triangle2D({{0,0,0},{0,1,0},{1,0,0}},
+                                       {{1.5,0.6,0},{0.6,0.6,0},{0.6,1.5,0}}));        
+}
 
 TEST(LineSeg3D, CtorOk)
 {

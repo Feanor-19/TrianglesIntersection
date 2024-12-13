@@ -194,9 +194,6 @@ private:
     Plane plane_; // must be consistent with other private fields:
                   // plane_.n_vec must be [p1p2, p1p3]
     BoundingBox bound_box_;
-
-    // helper for 'intersects_Triangle3D', t0.plane_ == t1.plane_
-    bool static intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1);
 public:
     class DegeneratedTriangle : public GeomException
     {

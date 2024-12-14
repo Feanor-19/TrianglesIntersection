@@ -10,12 +10,17 @@ TR_SIZE_BOUND=100
 
 iteration=0
 
+cd build/Release && \
+cmake ../.. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release && \
+cmake --build .
+cd ../..
+
 # Loop until a difference is found
 while true; do
     iteration=$((iteration + 1))
     echo "Iteration: $iteration"
 
-    #python3 scripts/gen_set_trs.py "$NUM_OF_TRIANGLES" "$CENTER_BOUND" "$TR_SIZE_BOUND" "$DATA_IN" > /dev/null
+    python3 scripts/gen_set_trs.py "$NUM_OF_TRIANGLES" "$CENTER_BOUND" "$TR_SIZE_BOUND" "$DATA_IN" > /dev/null
 
     python3 scripts/ref_triangle_intsc.py "$DATA_IN" > "$DATA_REF"
 

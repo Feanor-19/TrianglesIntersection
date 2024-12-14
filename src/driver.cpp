@@ -72,64 +72,75 @@ std::set<Driver::index_t> Driver::get_inds_with_intscs(ListPoint3D &points,
     using namespace Geom;
 
     std::set<index_t> indcs;
-
-    //REVIEW - попытка сократить повторяющиеся маленькие кусочки кода ниже
-    auto push_and_erase = [&indcs]<typename List>(List list, typename List::iterator it)
-    {
-        indcs.insert(it->first);
-        //list.erase(it); //TODO
-    };
-    
+    //REVIEW - как можно сократить столько повторяющихся, но не идентичных блоков?
     for (auto it_out = points.begin(); it_out != points.end(); it_out++)
     {
         Point3D point = it_out->second;
+        bool found = false;
         for (auto it_in = std::next(it_out); it_in != points.end(); it_in++)
         {
             if (it_in->second == it_out->second)
-                {push_and_erase(points, it_in); goto found_p;}
+            {
+                indcs.insert(it_in->first);
+                found = true;
+            }
         }
 
         for (auto it_lineseg = linesegs.begin(); it_lineseg != linesegs.end(); it_lineseg++)
         {
             if (it_lineseg->second.has_point(point)) 
-                {push_and_erase(linesegs, it_lineseg); goto found_p;}
+            {
+                indcs.insert(it_lineseg->first);
+                found = true;
+            }
         }
 
         for (auto it_tr = triangles.begin(); it_tr != triangles.end(); it_tr++)
         {
             if (it_tr->second.has_point(point)) 
-                {push_and_erase(triangles, it_tr); goto found_p;}
+            {
+                indcs.insert(it_tr->first);
+                found = true;
+            }
         }
-
-        continue;
-        found_p: indcs.insert(it_out->first);
+        if (found) indcs.insert(it_out->first);
     }
 
     for (auto it_out = linesegs.begin(); it_out != linesegs.end(); it_out++)
     {
+        bool found = false;
         for (auto it_in = std::next(it_out); it_in != linesegs.end(); it_in++)
         {
             if (it_out->second.intersects_LineSeg3D(it_in->second)) 
-                {push_and_erase(linesegs, it_in); goto found_ls;}
+            {
+                indcs.insert(it_in->first);
+                found = true;
+            }
         }
 
         for (auto it_tr = triangles.begin(); it_tr != triangles.end(); it_tr++)
         {
             if (it_tr->second.intersects_LineSeg3D(it_out->second))
-                {push_and_erase(triangles, it_tr); goto found_ls;}
+            {
+                indcs.insert(it_tr->first);
+                found = true;
+            }
         }
-
-        continue;
-        found_ls: indcs.insert(it_out->first);
+        if (found) indcs.insert(it_out->first);
     }
 
     for (auto it_out = triangles.begin(); it_out != triangles.end(); it_out++)
     {   
+        bool found = false;
         for (auto it_in = std::next(it_out); it_in != triangles.end(); it_in++)
         {
             if (it_in->second.intersects_Triangle3D(it_out->second))
-                {indcs.insert(it_out->first); indcs.insert(it_in->first); break;}
+            {
+                indcs.insert(it_in->first);
+                found = true;
+            }
         }
+        if (found) indcs.insert(it_out->first);
     }
 
     return indcs;

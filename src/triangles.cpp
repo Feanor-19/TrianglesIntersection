@@ -464,7 +464,6 @@ bool intersects_Triangle2D(const Triangle3D &t0, const Triangle3D &t1)
 
     // Eberly, Schneider – Geometric Tools for Computer Graphics, 2002 (7.7.2)
 
-    //REVIEW - Попытка уменьшить количество _маленького_ одинакового кода, но не используя макросы
     // returns true if ax_dir is a separating ax
     auto check_edge = [](const Point3D &p_i, const Point3D &p_i_plus_1, const Vector3D &n, const Triangle3D &other_t)
     {

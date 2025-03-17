@@ -72,7 +72,7 @@ std::set<Driver::index_t> Driver::get_inds_with_intscs(ListPoint3D &points,
     using namespace Geom;
 
     std::set<index_t> indcs;
-    //REVIEW - как можно сократить столько повторяющихся, но не идентичных блоков?
+
     for (auto it_out = points.begin(); it_out != points.end(); it_out++)
     {
         Point3D point = it_out->second;
